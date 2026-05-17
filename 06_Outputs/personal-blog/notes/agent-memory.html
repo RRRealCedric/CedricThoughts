@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>长期记忆系统 | Cedric Notes</title>
+    <meta name="description" content="为语音 Agent 设计跨会话记忆：用户画像、偏好、项目状态、显式记忆、检索注入与调试 API。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   </head>
@@ -11,25 +12,921 @@
     <main class="note-main">
       <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
       <header class="note-header">
-        <p class="note-meta">Agent Memory</p>
+        <p class="note-meta">Project Note</p>
         <h1>长期记忆系统</h1>
-        <p class="note-lede">记忆不是为了让 Agent 自动乱改自身，而是让它从长期交互中积累经验，形成稳定的用户理解、任务连续性和协作能力。</p>
+        <p class="note-lede">为语音 Agent 设计跨会话记忆：用户画像、偏好、项目状态、显式记忆、检索注入与调试 API。</p>
       </header>
       <article class="note-content">
-        <h2>为什么需要记忆</h2>
-        <p>语音交互天然是连续、情境化、个性化的。如果系统没有长期记忆，每一轮只能依赖当前文本和短期 chat history，很难形成可信的长期协作关系。</p>
-        <h2>记忆类型</h2>
-        <ul>
-          <li><strong>Semantic memory：</strong>稳定事实、用户偏好、长期项目状态。</li>
-          <li><strong>Episodic memory：</strong>发生过的事件、会话、阶段性任务。</li>
-          <li><strong>Procedural memory：</strong>流程、操作习惯、工程经验。</li>
-          <li><strong>Reflective memory：</strong>系统对交互模式和失败经验的总结。</li>
-        </ul>
-        <h2>目标闭环</h2>
-        <pre><code>ASR final → MemoryManager 检索相关记忆 → PipelineContext 注入
-→ Agent 生成回复 → 后台提取新记忆 → MemoryStore 写入或更新</code></pre>
-        <h2>MVP</h2>
-        <p>第一阶段目标是支持显式记忆、主动回忆、自动注入、用户隔离、基础遗忘和后端调试。第二阶段再加入可视化面板，展示本轮检索到的 memory、score、type 和来源。</p>
+        <p>下面给出一个 <strong>xtalk-memory 模块设计思路</strong>。它不是简单加一个 <code>memory.py</code>，而是把 memory 做成一个符合 X-Talk 原有架构的 <strong>事件驱动、可插拔、低延迟、可长期演化的 Agent Memory 子系统</strong>。</p>
+        <p>我的总体判断是：</p>
+        <pre><code class="language-text">X-Talk 现在已经有 Memory 的“基础构件”：
+        - Chat History / Context
+        - Embedding Search
+        - Local Search / Document RAG
+        - Agent Tool 机制
+        - Speaker Recognition
+        - EventBus + Manager + Pipeline 扩展机制
+
+        但还没有一个完整的 Long-term Memory / Self-evolving Memory 模块：
+        - 没有长期用户画像
+        - 没有跨会话记忆存储
+        - 没有自动记忆抽取
+        - 没有记忆去重、冲突、遗忘、置信度管理
+        - 没有反思式 self-evolution 闭环</code></pre>
+        <p>X-Talk 文档目前的 Text Embedding 更像“上传文档后的检索增强”，通过 <code>OpenAIEmbeddings</code> 和 <code>xtalk_instance.embed_text(session_id=session_id, text=text)</code> 把文本加入检索流程。([X-Talk][1]) 但 Service Configuration 又说明 embedding 数据位于 <code>&lt;data_dir&gt;/sessions/&lt;session_id&gt;/embeddings</code>，并且 session 目录会在 shutdown 时删除。([X-Talk][2]) 所以它不是严格意义上的长期记忆。</p>
+        <hr>
+        <h2>1. xtalk-memory 的定位</h2>
+        <p>我建议把 xtalk-memory 定位为：</p>
+        <pre><code class="language-text">一个面向 X-Talk 语音 Agent 的长期记忆与自进化子系统，
+        负责从多轮语音交互中抽取、组织、更新、检索和遗忘用户相关记忆，
+        并通过事件机制把相关记忆注入 LLM Agent，使系统具备跨会话个性化和经验积累能力。</code></pre>
+        <p>它和普通 RAG 的区别是：</p>
+        <p>| 能力   | Document RAG      | xtalk-memory                                         | | ---- | ----------------- | ---------------------------------------------------- | | 信息来源 | 用户上传文档            | 对话、工具调用、偏好、任务状态、失败经验                                 | | 生命周期 | 多数是静态文档           | 动态变化、可更新、可遗忘                                         | | 结构   | chunk + embedding | semantic / episodic / procedural / reflective memory | | 目标   | 回答文档相关问题          | 让 Agent 变得更了解用户、更会做事                                 | | 更新方式 | 用户上传或重建索引         | 自动抽取、合并、反思、冲突解决                                      | | 自进化  | 弱                 | 强                                                    |</p>
+        <hr>
+        <h2>2. 总体架构设计</h2>
+        <p>建议新增一个独立模块：</p>
+        <pre><code class="language-text">src/xtalk/memory/
+          __init__.py
+          schema.py
+          interfaces.py
+          store.py
+          retriever.py
+          extractor.py
+          updater.py
+          reflector.py
+          manager.py
+          tools.py
+          injector.py</code></pre>
+        <p>整体架构如下：</p>
+        <pre><code class="language-text">User Speech
+           ↓
+        ASR Final Text
+           ↓
+        MemoryRetrieveRequest
+           ↓
+        MemoryManager
+           ↓
+        MemoryStore.search()
+           ↓
+        MemoryRetrieved
+           ↓
+        MemoryContextInjector
+           ↓
+        LLM Agent Prompt / Tool Context
+           ↓
+        LLM Response
+           ↓
+        TTS Output
+
+        同时后台异步：
+        ASR Text + LLM Response + Tool Result + Speaker Info
+           ↓
+        MemoryWriteRequest
+           ↓
+        MemoryExtractor
+           ↓
+        MemoryUpdater
+           ↓
+        MemoryStore.add/update/delete
+           ↓
+        MemoryUpdated
+
+        会话结束或定时：
+        Session Logs
+           ↓
+        ReflectionManager
+           ↓
+        Reflection Memory / Policy Suggestion</code></pre>
+        <p>核心原则是：<strong>读取记忆可以参与主链路，但必须有超时；写入记忆和反思必须异步后台执行，不能阻塞 ASR → LLM → TTS 的低延迟链路。</strong></p>
+        <p>X-Talk 本身就是围绕 EventBus、Manager、Pipeline 的分层架构设计的，论文中也强调所有模块通过中心事件总线异步通信，支持模块解耦、动态协调和低延迟。 所以 memory 模块也应该遵守这个范式，而不是直接塞进 <code>DefaultAgent</code> 里硬耦合。</p>
+        <hr>
+        <h2>3. Memory 类型设计</h2>
+        <p>不要把所有记忆都放在一个向量库里。建议至少分成五类。</p>
+        <h3>3.1 Working Memory：当前任务工作记忆</h3>
+        <p>保存当前会话、当前任务、当前 turn 的临时状态。</p>
+        <p>例如：</p>
+        <pre><code class="language-text">当前用户正在配置 X-Talk memory 模块
+        当前问题是 memory 如何接入 EventBus
+        当前回答需要偏工程实现</code></pre>
+        <p>生命周期：</p>
+        <pre><code class="language-text">session 内有效
+        服务关闭或会话结束后可摘要，不一定原样持久化</code></pre>
+        <h3>3.2 Episodic Memory：事件记忆</h3>
+        <p>保存“发生过什么”。</p>
+        <p>例如：</p>
+        <pre><code class="language-text">2026-05-07，用户询问如何给 X-Talk 增加 memory/self-evolving 模块。
+        用户曾经上传过 X-Talk 论文并希望基于其架构开发。
+        用户曾讨论 Git/GitHub 多人协作范式。</code></pre>
+        <p>特点：</p>
+        <pre><code class="language-text">有时间
+        有来源
+        可追溯
+        适合向量检索</code></pre>
+        <h3>3.3 Semantic Memory：长期事实与偏好</h3>
+        <p>保存比较稳定的用户画像和偏好。</p>
+        <p>例如：</p>
+        <pre><code class="language-text">用户偏好中文技术解释。
+        用户正在开发级联式 AI 语音 Agent。
+        用户关注 agent memory、self-evolving、X-Talk 架构扩展。
+        用户希望回答偏工程落地，而不是纯理论综述。</code></pre>
+        <p>特点：</p>
+        <pre><code class="language-text">稳定
+        压缩
+        可更新
+        适合注入 prompt</code></pre>
+        <h3>3.4 Procedural Memory：技能/流程记忆</h3>
+        <p>保存 Agent 学到的操作流程、工具调用经验、项目开发步骤。</p>
+        <p>例如：</p>
+        <pre><code class="language-text">给 X-Talk 新增模块时，应遵循 interface → pipeline slot → event → manager → service registration。
+        添加新工具时，应通过 add_agent_tools 注册 LangChain tool。</code></pre>
+        <p>X-Talk 文档明确支持通过 <code>add_agent_tools</code> 增加文本工具，工具应为 LangChain tool，内置工具包括 <code>web_search</code>、<code>get_time</code>、emotion、timbre、speed 等。([X-Talk][3]) 这说明 procedural memory 可以和 tool-use 机制自然结合。</p>
+        <h3>3.5 Reflective Memory：反思/自进化记忆</h3>
+        <p>保存系统从历史交互中总结出来的改进经验。</p>
+        <p>例如：</p>
+        <pre><code class="language-text">用户多次要求“设计思路 + 模块拆分 + 数据结构”，以后回答此类问题应优先给架构图和开发路线。
+        某类 memory 检索结果经常噪声高，需要提高 semantic memory 权重。
+        某个工具调用延迟高，实时语音链路中应先生成缓冲话术。</code></pre>
+        <p>这是 self-evolving 的核心，但第一版不要让它自动改代码。应该先做：</p>
+        <pre><code class="language-text">反思 → 生成策略建议 → 人类确认 → 再进入配置或代码</code></pre>
+        <hr>
+        <h2>4. 核心组件设计</h2>
+        <h3>4.1 MemoryStore</h3>
+        <p>负责长期持久化。</p>
+        <p>建议第一版采用：</p>
+        <pre><code class="language-text">SQLite：存 metadata、user_id、session_id、type、confidence、timestamps
+        Chroma / FAISS：存 embedding 向量
+        JSONL：存 debug / audit log</code></pre>
+        <p>接口：</p>
+        <pre><code class="language-python">class MemoryStore:
+            async def add(self, item: &quot;MemoryItem&quot;) -&gt; str:
+                ...
+
+            async def search(
+                self,
+                query: str,
+                user_id: str,
+                memory_types: list[str] | None = None,
+                limit: int = 5,
+                filters: dict | None = None,
+            ) -&gt; list[&quot;MemoryItem&quot;]:
+                ...
+
+            async def update(self, memory_id: str, patch: dict) -&gt; None:
+                ...
+
+            async def delete(self, memory_id: str) -&gt; None:
+                ...
+
+            async def forget_user(self, user_id: str) -&gt; None:
+                ...
+
+            async def close(self) -&gt; None:
+                ...</code></pre>
+        <p>第一版不建议直接上复杂图数据库。更稳妥路线是：</p>
+        <pre><code class="language-text">Phase 1：SQLite + Vector DB
+        Phase 2：增加 relation table
+        Phase 3：升级 temporal graph memory</code></pre>
+        <h3>4.2 MemoryItem Schema</h3>
+        <p>建议每条记忆都必须结构化，而不是只存一句话。</p>
+        <pre><code class="language-python">@dataclass
+        class MemoryItem:
+            id: str
+            user_id: str
+            session_id: str | None
+            speaker_id: str | None
+
+            type: Literal[
+                &quot;working&quot;,
+                &quot;episodic&quot;,
+                &quot;semantic&quot;,
+                &quot;procedural&quot;,
+                &quot;reflective&quot;,
+            ]
+
+            content: str
+            embedding_text: str
+
+            source: Literal[
+                &quot;conversation&quot;,
+                &quot;tool_result&quot;,
+                &quot;user_explicit&quot;,
+                &quot;reflection&quot;,
+                &quot;document&quot;,
+            ]
+
+            confidence: float
+            importance: float
+
+            created_at: float
+            updated_at: float
+            last_accessed_at: float | None
+            expires_at: float | None
+
+            evidence: list[str]
+            metadata: dict</code></pre>
+        <p>关键字段解释：</p>
+        <pre><code class="language-text">confidence：这条记忆是否可信
+        importance：是否值得长期保留
+        expires_at：是否会过期
+        evidence：这条记忆来自哪几句话或哪次工具调用
+        metadata：可放 turn_id、emotion、speaker、retrieval score 等</code></pre>
+        <h3>4.3 MemoryExtractor</h3>
+        <p>负责从对话中抽取候选记忆。</p>
+        <p>输入：</p>
+        <pre><code class="language-text">user_text
+        assistant_text
+        tool_results
+        speaker_id
+        session_id
+        existing_memories</code></pre>
+        <p>输出：</p>
+        <pre><code class="language-json">[
+          {
+            &quot;type&quot;: &quot;semantic&quot;,
+            &quot;content&quot;: &quot;用户正在开发 X-Talk 的 memory/self-evolving 模块。&quot;,
+            &quot;confidence&quot;: 0.93,
+            &quot;importance&quot;: 0.87,
+            &quot;source&quot;: &quot;conversation&quot;,
+            &quot;should_write&quot;: true
+          }
+        ]</code></pre>
+        <p>它需要做三件事：</p>
+        <pre><code class="language-text">1. 判断是否值得记忆
+        2. 抽取成结构化 memory item
+        3. 标注类型、置信度、重要性和证据</code></pre>
+        <p>强烈建议第一版设置写入门槛：</p>
+        <pre><code class="language-text">confidence &gt;= 0.75
+        importance &gt;= 0.60
+        不包含敏感隐私
+        不是短期闲聊
+        不是模型自己臆测</code></pre>
+        <h3>4.4 MemoryUpdater</h3>
+        <p>负责去重、合并、冲突和遗忘。</p>
+        <p>典型逻辑：</p>
+        <pre><code class="language-text">新记忆进入
+           ↓
+        搜索相似旧记忆
+           ↓
+        如果重复：更新 last_seen / confidence
+           ↓
+        如果补充：合并内容
+           ↓
+        如果冲突：保留版本，标记 conflict
+           ↓
+        如果过期：降权或删除</code></pre>
+        <p>例如：</p>
+        <pre><code class="language-text">旧记忆：用户喜欢英文回答
+        新记忆：用户希望之后用中文解释技术问题</code></pre>
+        <p>不要简单覆盖，而是记录：</p>
+        <pre><code class="language-json">{
+          &quot;old&quot;: &quot;用户喜欢英文回答&quot;,
+          &quot;new&quot;: &quot;用户希望之后用中文解释技术问题&quot;,
+          &quot;relation&quot;: &quot;conflict&quot;,
+          &quot;resolution&quot;: &quot;prefer_recent_explicit_preference&quot;
+        }</code></pre>
+        <h3>4.5 MemoryRetriever</h3>
+        <p>负责检索。</p>
+        <p>不要只做向量相似度。建议第一版用混合排序：</p>
+        <pre><code class="language-text">score =
+          0.45 * embedding_similarity
+        + 0.20 * recency_score
+        + 0.15 * importance
+        + 0.10 * confidence
+        + 0.10 * user_or_speaker_match</code></pre>
+        <p>检索流程：</p>
+        <pre><code class="language-text">当前用户输入
+           ↓
+        query rewrite
+           ↓
+        semantic search
+           ↓
+        metadata filter
+           ↓
+        rerank
+           ↓
+        top-k memory
+           ↓
+        prompt injection</code></pre>
+        <p>每轮最多注入少量记忆：</p>
+        <pre><code class="language-text">semantic memory：3～5 条
+        episodic memory：1～3 条
+        procedural memory：0～2 条
+        reflective memory：0～2 条</code></pre>
+        <h3>4.6 MemoryContextInjector</h3>
+        <p>负责把记忆转成 Agent 能用的上下文。</p>
+        <p>示例注入格式：</p>
+        <pre><code class="language-text">Relevant long-term memory:
+        - 用户正在开发 X-Talk 的 memory/self-evolving 模块。
+        - 用户偏好中文、结构化、工程落地的解释。
+        - 给 X-Talk 新增能力时应遵循 EventBus + Manager + Pipeline 的扩展范式。
+
+        Use these memories only when relevant. Do not mention them unless helpful.</code></pre>
+        <p>注意：不要把所有记忆都塞进 prompt。Memory 的价值在于“少而准”。</p>
+        <h3>4.7 MemoryManager</h3>
+        <p>MemoryManager 是 xtalk-memory 的核心。它应该作为 X-Talk Manager 注册进 Service。</p>
+        <p>X-Talk 文档中给出的自定义扩展路径是：先定义新模型或 Pipeline slot，然后通过 EventBus 加新的 Manager 订阅已有 Event，也可以创建新 Event。([X-Talk][4]) 这正好适合 MemoryManager。</p>
+        <p>MemoryManager 负责：</p>
+        <pre><code class="language-text">订阅 ASR final event
+        订阅 LLM response finish event
+        订阅 tool result event
+        订阅 speaker event
+        发布 MemoryRetrieved
+        发布 MemoryUpdated
+        管理后台 memory write task
+        管理 session shutdown 时的 summary / reflection</code></pre>
+        <hr>
+        <h2>5. 事件设计</h2>
+        <p>建议新增一组 memory events。</p>
+        <pre><code class="language-python">MemoryRetrieveRequest = create_event_class(
+            name=&quot;MemoryRetrieveRequest&quot;,
+            fields={
+                &quot;query&quot;: &quot;&quot;,
+                &quot;user_id&quot;: &quot;&quot;,
+                &quot;session_id&quot;: &quot;&quot;,
+                &quot;speaker_id&quot;: &quot;&quot;,
+                &quot;turn_id&quot;: 0,
+                &quot;limit&quot;: 5,
+            },
+        )
+
+        MemoryRetrieved = create_event_class(
+            name=&quot;MemoryRetrieved&quot;,
+            fields={
+                &quot;memories&quot;: [],
+                &quot;user_id&quot;: &quot;&quot;,
+                &quot;session_id&quot;: &quot;&quot;,
+                &quot;turn_id&quot;: 0,
+            },
+        )
+
+        MemoryWriteRequest = create_event_class(
+            name=&quot;MemoryWriteRequest&quot;,
+            fields={
+                &quot;user_text&quot;: &quot;&quot;,
+                &quot;assistant_text&quot;: &quot;&quot;,
+                &quot;tool_results&quot;: [],
+                &quot;user_id&quot;: &quot;&quot;,
+                &quot;speaker_id&quot;: &quot;&quot;,
+                &quot;session_id&quot;: &quot;&quot;,
+                &quot;turn_id&quot;: 0,
+            },
+        )
+
+        MemoryUpdated = create_event_class(
+            name=&quot;MemoryUpdated&quot;,
+            fields={
+                &quot;memory_ids&quot;: [],
+                &quot;action&quot;: &quot;&quot;,
+                &quot;user_id&quot;: &quot;&quot;,
+                &quot;session_id&quot;: &quot;&quot;,
+                &quot;turn_id&quot;: 0,
+            },
+        )
+
+        MemoryForgetRequest = create_event_class(
+            name=&quot;MemoryForgetRequest&quot;,
+            fields={
+                &quot;query&quot;: &quot;&quot;,
+                &quot;memory_id&quot;: &quot;&quot;,
+                &quot;user_id&quot;: &quot;&quot;,
+                &quot;session_id&quot;: &quot;&quot;,
+                &quot;turn_id&quot;: 0,
+            },
+        )</code></pre>
+        <p>事件流建议：</p>
+        <pre><code class="language-text">用户说话结束
+           ↓
+        ASRFinal
+           ↓
+        MemoryRetrieveRequest
+           ↓
+        MemoryRetrieved
+           ↓
+        LLMAgentGenerate
+
+        LLM 回答结束
+           ↓
+        LLMAgentResponseFinish
+           ↓
+        MemoryWriteRequest
+           ↓
+        MemoryExtractor / MemoryUpdater
+           ↓
+        MemoryUpdated</code></pre>
+        <hr>
+        <h2>6. 和 X-Talk Pipeline 的集成</h2>
+        <p>X-Talk 自定义 Pipeline 文档提到，如果要新增 Pipeline 功能，需要把新 slot 注册为 dataclass field，并指定 clone 行为；如果 slot 没有进入 <code>additional_model_registry</code>，config 加载路径不会自动填充它。([X-Talk][4])</p>
+        <p>建议新增：</p>
+        <pre><code class="language-python">@dataclass(init=False)
+        class MemoryPipeline(DefaultPipeline):
+            memory_store: Optional[MemoryStore] = field(
+                default=None,
+                metadata={&quot;init_key&quot;: &quot;memory_store&quot;, &quot;clone&quot;: False},
+            )
+
+            memory_extractor: Optional[MemoryExtractor] = field(
+                default=None,
+                metadata={&quot;init_key&quot;: &quot;memory_extractor&quot;, &quot;clone&quot;: True},
+            )
+
+            memory_retriever: Optional[MemoryRetriever] = field(
+                default=None,
+                metadata={&quot;init_key&quot;: &quot;memory_retriever&quot;, &quot;clone&quot;: True},
+            )
+
+            memory_reflector: Optional[MemoryReflector] = field(
+                default=None,
+                metadata={&quot;init_key&quot;: &quot;memory_reflector&quot;, &quot;clone&quot;: True},
+            )</code></pre>
+        <p>clone 原则：</p>
+        <pre><code class="language-text">memory_store:
+          如果是数据库连接池 / Chroma client，可 clone=False
+          如果内部维护 session cache，则 clone=True
+
+        memory_extractor:
+          如果有 per-session prompt state，clone=True
+
+        memory_retriever:
+          如果只读无状态，可 clone=False
+          如果有 turn-level cache，clone=True
+
+        memory_reflector:
+          一般 clone=True，因为它会积累 session-level 交互轨迹</code></pre>
+        <p>这和 X-Talk 论文中的状态隔离原则一致：模型参数可以共享，但 streaming buffer、intermediate queue 等可变状态需要按 session 隔离。</p>
+        <hr>
+        <h2>7. Agent Tools 设计</h2>
+        <p>Memory 不应该只靠后台自动抽取，也应该暴露给 LLM Agent 主动调用。</p>
+        <p>建议新增三个工具：</p>
+        <pre><code class="language-text">recall_memory
+        remember_memory
+        forget_memory</code></pre>
+        <h3>recall_memory</h3>
+        <pre><code class="language-python">@tool
+        async def recall_memory(query: str, limit: int = 5) -&gt; str:
+            &quot;&quot;&quot;Retrieve relevant long-term memories for the current user.&quot;&quot;&quot;</code></pre>
+        <p>使用场景：</p>
+        <pre><code class="language-text">用户问：我之前说过我要给 X-Talk 加什么模块？
+        Agent 调用 recall_memory(&quot;X-Talk module plan&quot;)</code></pre>
+        <h3>remember_memory</h3>
+        <pre><code class="language-python">@tool
+        async def remember_memory(content: str, memory_type: str = &quot;semantic&quot;) -&gt; str:
+            &quot;&quot;&quot;Store an explicit user-approved memory.&quot;&quot;&quot;</code></pre>
+        <p>使用场景：</p>
+        <pre><code class="language-text">用户说：记住，我现在主要想做 X-Talk memory 模块。
+        Agent 调用 remember_memory(...)</code></pre>
+        <h3>forget_memory</h3>
+        <pre><code class="language-python">@tool
+        async def forget_memory(query: str) -&gt; str:
+            &quot;&quot;&quot;Forget memories matching the user&#x27;s request.&quot;&quot;&quot;</code></pre>
+        <p>使用场景：</p>
+        <pre><code class="language-text">用户说：忘掉我刚才说的 API key。
+        Agent 调用 forget_memory(...)</code></pre>
+        <p>注意：<code>remember_memory</code> 和 <code>forget_memory</code> 必须优先处理用户显式意图。自动记忆只能作为后台优化，不能覆盖用户控制权。</p>
+        <hr>
+        <h2>8. 自进化机制设计</h2>
+        <p>xtalk-memory 的 self-evolving 可以分三层做。</p>
+        <h3>第一层：Memory Evolution</h3>
+        <p>系统自动维护记忆质量。</p>
+        <pre><code class="language-text">候选记忆
+           ↓
+        去重
+           ↓
+        合并
+           ↓
+        冲突解决
+           ↓
+        重要性更新
+           ↓
+        过期遗忘</code></pre>
+        <p>例如：</p>
+        <pre><code class="language-text">用户多次要求“请给出工程实现”
+           ↓
+        更新 semantic memory：
+        “用户偏好工程落地型回答”</code></pre>
+        <h3>第二层：Policy Evolution</h3>
+        <p>系统根据记忆调整交互策略。</p>
+        <p>例如：</p>
+        <pre><code class="language-text">如果用户偏好简洁：
+          回答更短
+
+        如果用户偏好代码：
+          回答中优先给 interface / class / event
+
+        如果某工具经常超时：
+          降低该工具优先级，先给缓冲话术</code></pre>
+        <p>可以把策略记成 reflective memory：</p>
+        <pre><code class="language-json">{
+          &quot;type&quot;: &quot;reflective&quot;,
+          &quot;content&quot;: &quot;在 X-Talk 架构设计问题中，用户更需要模块边界、事件流和开发路线，而不是泛泛综述。&quot;,
+          &quot;confidence&quot;: 0.88
+        }</code></pre>
+        <h3>第三层：System Evolution</h3>
+        <p>系统生成可审查的改进建议。</p>
+        <pre><code class="language-text">ReflectionManager
+           ↓
+        分析历史失败案例
+           ↓
+        生成 evolution report
+           ↓
+        开发者确认
+           ↓
+        进入 issue / config / PR</code></pre>
+        <p>例如：</p>
+        <pre><code class="language-text">建议：
+        - 为 MemoryManager 增加 300ms retrieval timeout
+        - 为 MemoryExtractor 增加敏感信息过滤
+        - 为 recall_memory tool 增加 user_id filter</code></pre>
+        <p>不要第一版就做：</p>
+        <pre><code class="language-text">自动修改源码
+        自动改生产配置
+        自动 merge PR</code></pre>
+        <p>这样风险太高。更合理的是 human-in-the-loop self-evolution。</p>
+        <hr>
+        <h2>9. 存储目录设计</h2>
+        <p>因为 X-Talk 当前 session embedding 会在 shutdown 时删除，长期 memory 应该单独放。</p>
+        <p>建议：</p>
+        <pre><code class="language-text">data/
+          memory/
+            users/
+              &lt;user_id&gt;/
+                profile.json
+                semantic.sqlite
+                episodic.sqlite
+                procedural.sqlite
+                reflective.sqlite
+                vector_index/
+                  chroma/
+                audit.jsonl
+            global/
+              skills/
+              policies/</code></pre>
+        <p>区分：</p>
+        <pre><code class="language-text">session memory:
+          data/sessions/&lt;session_id&gt;/...
+
+        long-term memory:
+          data/memory/users/&lt;user_id&gt;/...</code></pre>
+        <p>不要把长期记忆写入 session 目录。</p>
+        <hr>
+        <h2>10. 配置设计</h2>
+        <p>可以在 config 中新增：</p>
+        <pre><code class="language-json">{
+          &quot;memory&quot;: {
+            &quot;enabled&quot;: true,
+            &quot;data_dir&quot;: &quot;data/memory&quot;,
+            &quot;store&quot;: {
+              &quot;type&quot;: &quot;SQLiteChromaMemoryStore&quot;,
+              &quot;params&quot;: {
+                &quot;sqlite_path&quot;: &quot;data/memory/memory.sqlite&quot;,
+                &quot;chroma_dir&quot;: &quot;data/memory/chroma&quot;
+              }
+            },
+            &quot;retrieval&quot;: {
+              &quot;top_k&quot;: 5,
+              &quot;timeout_ms&quot;: 300,
+              &quot;min_score&quot;: 0.55,
+              &quot;use_rerank&quot;: true
+            },
+            &quot;write_policy&quot;: {
+              &quot;auto_extract&quot;: true,
+              &quot;min_confidence&quot;: 0.75,
+              &quot;min_importance&quot;: 0.60,
+              &quot;require_user_confirmation_for_sensitive&quot;: true
+            },
+            &quot;reflection&quot;: {
+              &quot;enabled&quot;: true,
+              &quot;on_session_end&quot;: true,
+              &quot;max_reflections_per_session&quot;: 3
+            }
+          }
+        }</code></pre>
+        <hr>
+        <h2>11. 低延迟设计原则</h2>
+        <p>X-Talk 的主要价值是实时语音交互，所以 memory 不能拖慢系统。</p>
+        <p>建议设置：</p>
+        <pre><code class="language-text">Memory retrieval timeout：200～500ms
+        Memory write：后台异步
+        Memory reflection：session end 或低峰后台执行
+        Memory rerank：只对 top-20 做
+        Prompt injection：限制 token 数</code></pre>
+        <p>实时链路：</p>
+        <pre><code class="language-text">ASR → Memory Retrieval → LLM → TTS</code></pre>
+        <p>其中 retrieval 只能短暂参与：</p>
+        <pre><code class="language-text">如果 300ms 内检索完成：
+          注入 memory
+
+        如果超时：
+          跳过 memory，直接生成</code></pre>
+        <p>伪代码：</p>
+        <pre><code class="language-python">try:
+            memories = await asyncio.wait_for(
+                memory_store.search(query, user_id=user_id, limit=5),
+                timeout=0.3,
+            )
+        except TimeoutError:
+            memories = []</code></pre>
+        <p>写入链路：</p>
+        <pre><code class="language-python">asyncio.create_task(
+            memory_manager.extract_and_write(turn_context)
+        )</code></pre>
+        <hr>
+        <h2>12. 隐私与安全原则</h2>
+        <p>Memory 模块必须从第一版就考虑安全。</p>
+        <p>至少要支持：</p>
+        <pre><code class="language-text">1. 用户显式关闭 memory
+        2. 用户查看 memory
+        3. 用户删除某条 memory
+        4. 用户删除全部 memory
+        5. 敏感信息默认不自动存储
+        6. user_id / speaker_id / session_id 严格隔离
+        7. audit log 记录每次写入原因</code></pre>
+        <p>敏感信息过滤：</p>
+        <pre><code class="language-text">API key
+        密码
+        身份证
+        银行卡
+        详细地址
+        医疗诊断
+        政治 / 宗教 / 敏感身份</code></pre>
+        <p>自动写入策略：</p>
+        <pre><code class="language-text">普通偏好：可自动写入
+        长期任务目标：可自动写入
+        敏感个人信息：需要用户确认
+        凭证类信息：禁止写入</code></pre>
+        <hr>
+        <h2>13. 开发路线建议</h2>
+        <h3>Phase 0：调研现有接口</h3>
+        <p>先读这些部分：</p>
+        <pre><code class="language-text">src/xtalk/llm_agent/
+        src/xtalk/llm_agent/tools/
+        src/xtalk/service/
+        src/xtalk/pipeline/
+        src/xtalk/events/
+        src/xtalk/managers/</code></pre>
+        <p>确认已有事件名，例如 ASR final、LLM response finish、tool result、session shutdown。</p>
+        <h3>Phase 1：Memory MVP</h3>
+        <p>目标：</p>
+        <pre><code class="language-text">能记、能查、能忘、能跨 session 保留</code></pre>
+        <p>实现：</p>
+        <pre><code class="language-text">MemoryItem
+        MemoryStore
+        recall_memory
+        remember_memory
+        forget_memory
+        MemoryManager
+        MemoryContextInjector</code></pre>
+        <p>验收标准：</p>
+        <pre><code class="language-text">第一轮：用户说“记住我正在开发 xtalk-memory”
+        第二轮：用户问“我刚才说我在开发什么？”
+        系统能回答
+        重启服务后仍能回答
+        用户说“忘掉这件事”后不能再回答</code></pre>
+        <h3>Phase 2：自动抽取</h3>
+        <p>目标：</p>
+        <pre><code class="language-text">不需要用户每次说“记住”，系统能自动抽取有价值记忆</code></pre>
+        <p>实现：</p>
+        <pre><code class="language-text">MemoryExtractor
+        MemoryWritePolicy
+        MemoryUpdater
+        重复合并
+        置信度管理</code></pre>
+        <p>验收标准：</p>
+        <pre><code class="language-text">用户多次表达偏好后，系统能形成 semantic memory
+        无意义闲聊不会写入
+        敏感信息不会自动写入</code></pre>
+        <h3>Phase 3：反思式自进化</h3>
+        <p>目标：</p>
+        <pre><code class="language-text">系统能总结交互经验，形成 reflective memory</code></pre>
+        <p>实现：</p>
+        <pre><code class="language-text">MemoryReflector
+        SessionSummary
+        FailureCaseLogger
+        EvolutionReport</code></pre>
+        <p>验收标准：</p>
+        <pre><code class="language-text">系统能生成：
+        - 用户偏好总结
+        - 工具调用失败总结
+        - 回答策略建议
+        - 可供开发者审查的改进报告</code></pre>
+        <h3>Phase 4：图记忆</h3>
+        <p>目标：</p>
+        <pre><code class="language-text">支持实体、事件、时间、关系和冲突更新</code></pre>
+        <p>实现：</p>
+        <pre><code class="language-text">Entity table
+        Relation table
+        Temporal event table
+        Hybrid vector + graph retrieval</code></pre>
+        <p>适合后续研究创新。</p>
+        <hr>
+        <h2>14. 测试方案</h2>
+        <p>X-Talk 文档支持用 <code>scripts/offline_client.py</code> 输入音频测试系统，也支持用 <code>scripts/create_test_case.py</code> 从文本生成测试音频。([X-Talk][5]) Memory 模块可以直接复用这套测试方式。</p>
+        <h3>单元测试</h3>
+        <pre><code class="language-text">test_memory_store.py
+        test_memory_retriever.py
+        test_memory_extractor.py
+        test_memory_updater.py
+        test_memory_tools.py</code></pre>
+        <p>测试点：</p>
+        <pre><code class="language-text">add/search/delete/update
+        user_id 隔离
+        speaker_id 隔离
+        重复记忆合并
+        冲突记忆处理
+        过期记忆遗忘
+        敏感信息过滤</code></pre>
+        <h3>集成测试</h3>
+        <pre><code class="language-text">test_memory_agent_flow.py</code></pre>
+        <p>场景：</p>
+        <pre><code class="language-text">Turn 1:
+        用户：记住我正在开发 X-Talk 的 memory 模块。
+
+        Turn 2:
+        用户：我刚才说我要开发什么？
+
+        Expected:
+        系统回答 X-Talk memory 模块。</code></pre>
+        <h3>跨会话测试</h3>
+        <pre><code class="language-text">Session A:
+        写入长期记忆
+
+        重启服务
+
+        Session B:
+        检索同一 user_id 的记忆
+
+        Expected:
+        可检索</code></pre>
+        <h3>隔离测试</h3>
+        <pre><code class="language-text">User A 写入：
+        我喜欢中文回答。
+
+        User B 提问：
+        我喜欢什么语言回答？
+
+        Expected:
+        不能泄漏 User A 的记忆。</code></pre>
+        <hr>
+        <h2>15. 最小代码骨架</h2>
+        <p>可以先这样起步：</p>
+        <pre><code class="language-python"># src/xtalk/memory/schema.py
+
+        from dataclasses import dataclass, field
+        from typing import Literal, Optional
+        import time
+        import uuid
+
+
+        MemoryType = Literal[
+            &quot;working&quot;,
+            &quot;episodic&quot;,
+            &quot;semantic&quot;,
+            &quot;procedural&quot;,
+            &quot;reflective&quot;,
+        ]
+
+
+        @dataclass
+        class MemoryItem:
+            content: str
+            user_id: str
+            type: MemoryType = &quot;semantic&quot;
+            id: str = field(default_factory=lambda: str(uuid.uuid4()))
+            session_id: Optional[str] = None
+            speaker_id: Optional[str] = None
+            embedding_text: Optional[str] = None
+            source: str = &quot;conversation&quot;
+            confidence: float = 1.0
+            importance: float = 0.5
+            created_at: float = field(default_factory=time.time)
+            updated_at: float = field(default_factory=time.time)
+            last_accessed_at: Optional[float] = None
+            expires_at: Optional[float] = None
+            evidence: list[str] = field(default_factory=list)
+            metadata: dict = field(default_factory=dict)
+
+            def text_for_embedding(self) -&gt; str:
+                return self.embedding_text or self.content</code></pre>
+        <pre><code class="language-python"># src/xtalk/memory/interfaces.py
+
+        from abc import ABC, abstractmethod
+        from .schema import MemoryItem
+
+
+        class MemoryStore(ABC):
+            @abstractmethod
+            async def add(self, item: MemoryItem) -&gt; str:
+                ...
+
+            @abstractmethod
+            async def search(
+                self,
+                query: str,
+                user_id: str,
+                limit: int = 5,
+                memory_types: list[str] | None = None,
+                filters: dict | None = None,
+            ) -&gt; list[MemoryItem]:
+                ...
+
+            @abstractmethod
+            async def update(self, memory_id: str, patch: dict) -&gt; None:
+                ...
+
+            @abstractmethod
+            async def delete(self, memory_id: str) -&gt; None:
+                ...
+
+            @abstractmethod
+            async def forget_user(self, user_id: str) -&gt; None:
+                ...</code></pre>
+        <pre><code class="language-python"># src/xtalk/memory/tools.py
+
+        from langchain.tools import tool
+
+
+        def build_memory_tools(memory_store, user_id_getter):
+            @tool
+            async def recall_memory(query: str, limit: int = 5) -&gt; str:
+                &quot;&quot;&quot;Retrieve relevant long-term memories for the current user.&quot;&quot;&quot;
+                user_id = user_id_getter()
+                memories = await memory_store.search(query=query, user_id=user_id, limit=limit)
+                if not memories:
+                    return &quot;No relevant memory found.&quot;
+                return &quot;\n&quot;.join(f&quot;- {m.content}&quot; for m in memories)
+
+            @tool
+            async def remember_memory(content: str, memory_type: str = &quot;semantic&quot;) -&gt; str:
+                &quot;&quot;&quot;Store an explicit user-approved memory.&quot;&quot;&quot;
+                user_id = user_id_getter()
+                item = MemoryItem(
+                    user_id=user_id,
+                    content=content,
+                    type=memory_type,
+                    source=&quot;user_explicit&quot;,
+                    confidence=1.0,
+                    importance=0.9,
+                )
+                memory_id = await memory_store.add(item)
+                return f&quot;Memory saved: {memory_id}&quot;
+
+            @tool
+            async def forget_memory(query: str) -&gt; str:
+                &quot;&quot;&quot;Forget memories matching the user&#x27;s request.&quot;&quot;&quot;
+                user_id = user_id_getter()
+                memories = await memory_store.search(query=query, user_id=user_id, limit=10)
+                for memory in memories:
+                    await memory_store.delete(memory.id)
+                return f&quot;Forgot {len(memories)} matching memories.&quot;
+
+            return [recall_memory, remember_memory, forget_memory]</code></pre>
+        <hr>
+        <h2>16. 最推荐的最终形态</h2>
+        <p>我建议你把 xtalk-memory 做成下面这个结构：</p>
+        <pre><code class="language-text">xtalk-memory
+        ├── MemoryStore
+        │   ├── SQLite metadata
+        │   ├── Vector index
+        │   └── Audit log
+        │
+        ├── MemoryManager
+        │   ├── subscribe ASR / LLM / Tool / Speaker events
+        │   ├── publish MemoryRetrieved / MemoryUpdated
+        │   └── async write / reflection
+        │
+        ├── MemoryExtractor
+        │   ├── salience detection
+        │   ├── preference extraction
+        │   ├── fact extraction
+        │   └── privacy filter
+        │
+        ├── MemoryUpdater
+        │   ├── dedup
+        │   ├── merge
+        │   ├── conflict resolution
+        │   └── forgetting
+        │
+        ├── MemoryRetriever
+        │   ├── vector search
+        │   ├── recency / confidence / importance rerank
+        │   └── top-k selection
+        │
+        ├── MemoryTools
+        │   ├── recall_memory
+        │   ├── remember_memory
+        │   └── forget_memory
+        │
+        └── MemoryReflector
+            ├── session summary
+            ├── failure analysis
+            ├── policy suggestion
+            └── evolution report</code></pre>
+        <p>一句话设计原则：</p>
+        <pre><code class="language-text">xtalk-memory 应该是 X-Talk 的长期认知层：
+        以 EventBus 接入，以 Manager 运转，以 Store 持久化，以 Tool 暴露给 Agent，
+        以 Extractor/Updater/Reflector 实现记忆演化，
+        同时严格保证低延迟、用户隔离、可遗忘和可审计。</code></pre>
+        <p>第一版先做 <strong>Long-term Memory MVP</strong>，不要急着做完整 self-evolving。等“跨会话记忆 + 主动记忆工具 + 自动抽取 + 遗忘机制”跑通后，再加入 reflection 和 temporal graph memory，这样最稳。</p>
+        <p>[1]: https://xtalk.readthedocs.io/tutorial/text_embedding/ &quot;Text Embedding - X-Talk Documentation&quot; [2]: https://xtalk.readthedocs.io/docs/service_config/ &quot;Service Configuration - X-Talk Documentation&quot; [3]: https://xtalk.readthedocs.io/tutorial/tool_use/ &quot;Tool Use - X-Talk Documentation&quot; [4]: https://xtalk.readthedocs.io/tutorial/customize_the_pipeline/ &quot;Customize the Pipeline - X-Talk Documentation&quot; [5]: https://xtalk.readthedocs.io/tutorial/testing/ &quot;Testing - X-Talk Documentation&quot;</p>
       </article>
     </main>
   </body>

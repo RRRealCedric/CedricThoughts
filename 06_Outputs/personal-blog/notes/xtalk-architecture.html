@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>X-Talk 系统架构分析 | Cedric Notes</title>
+    <meta name="description" content="从 API、事件总线、Managers、Agent 和 Models 分层理解实时语音 Agent 系统。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   </head>
@@ -13,28 +14,277 @@
       <header class="note-header">
         <p class="note-meta">Project Note</p>
         <h1>X-Talk 系统架构分析</h1>
-        <p class="note-lede">X-Talk 是一个开源的全双工级联式语音对话系统框架，关注亚秒级端到端延迟、多异构组件协调，以及模型的灵活集成与热替换。</p>
+        <p class="note-lede">从 API、事件总线、Managers、Agent 和 Models 分层理解实时语音 Agent 系统。</p>
       </header>
       <article class="note-content">
-        <h2>核心问题</h2>
-        <p>实时语音 Agent 的难点不只是调用 ASR、LLM 和 TTS，而是把多个异步组件组织成稳定、低延迟、可观察、可替换的系统。</p>
-        <h2>架构概要</h2>
-        <p>X-Talk 采用分层事件驱动架构：浏览器前端负责语音采集与播放，EventBus 负责事件分发，Managers 负责 ASR、LLM、TTS、检索、说话人识别、延迟监控等模块编排，Agent 层负责工具调用与生成策略，Models 层封装具体模型接口。</p>
-        <div class="note-grid">
-          <section class="note-tile"><strong>Frontend Layer</strong><p>Web UI、Client VAD、音频采集与播放。</p></section>
-          <section class="note-tile"><strong>Event Center</strong><p>InputGateway、OutputGateway 与 EventBus 解耦内部模块。</p></section>
-          <section class="note-tile"><strong>Managers</strong><p>ASRManager、LLMAgentManager、TTSManager 等负责异步编排。</p></section>
-          <section class="note-tile"><strong>Agent & Models</strong><p>DefaultAgent 负责推理与工具，模型接口负责可替换实现。</p></section>
-        </div>
-        <h2>设计价值</h2>
+        <h2>X-Talk 系统架构分析</h2>
+        <h3>核心问题</h3>
+        <p>X-Talk 是一个<strong>开源的全双工级联式语音对话系统框架</strong>，主要解决：</p>
         <ul>
-          <li>事件驱动让各模块之间保持松耦合。</li>
-          <li>模型接口让 ASR、TTS、LLM、Embedding 等能力可以替换。</li>
-          <li>Manager 层让复杂流程具备可调试、可观测、可扩展的边界。</li>
-          <li>PipelineContext 为记忆、检索、字幕、思维状态等上下文注入提供统一位置。</li>
+          <li>亚秒级端到端延迟</li>
+          <li>多异构组件协调</li>
+          <li>灵活的模型集成与热替换</li>
         </ul>
-        <h2>下一步</h2>
-        <p>长期方向是把 X-Talk 从实时语音系统推进为具备长期记忆、个人偏好、项目连续性和自我复盘能力的协作型 Agent。</p>
+        <h3>整体架构</h3>
+        <p>X-Talk 采用 <strong>5 层分层事件驱动架构</strong>：</p>
+        <pre><code class="language-mermaid">graph TD
+            subgraph &quot;Frontend Layer (Browser)&quot;
+                UI[&quot;Web UI&quot;]
+                ClientVAD[&quot;Client VAD&quot;]
+                AudioCapture[&quot;Audio Capture/Playback&quot;]
+            end
+
+            subgraph &quot;Event Center Layer&quot;
+                IG[&quot;InputGateway&quot;]
+                OG[&quot;OutputGateway&quot;]
+                EB[&quot;EventBus&quot;]
+            end
+
+            subgraph &quot;Managers Layer&quot;
+                ASR_M[&quot;ASRManager&quot;]
+                LLM_M[&quot;LLMAgentManager&quot;]
+                TTS_M[&quot;TTSManager&quot;]
+                CAP_M[&quot;CaptionerManager&quot;]
+                TH_M[&quot;ThoughtManager&quot;]
+                RET_M[&quot;RetrievalManager&quot;]
+                TT_M[&quot;TurnTakingManager&quot;]
+                LAT_M[&quot;LatencyManager&quot;]
+                VAD_M[&quot;VADManager&quot;]
+                ENH_M[&quot;EnhancerManager&quot;]
+                SPK_M[&quot;SpeakerManager&quot;]
+                EMB_M[&quot;EmbeddingsManager&quot;]
+            end
+
+            subgraph &quot;Agent Layer&quot;
+                Agent[&quot;DefaultAgent&quot;]
+                Tools[&quot;Tools: web_search, get_time, pipeline_control&quot;]
+            end
+
+            subgraph &quot;Models Layer&quot;
+                ASR_I[&quot;ASR Interface&quot;]
+                TTS_I[&quot;TTS Interface&quot;]
+                CAP_I[&quot;Captioner Interface&quot;]
+                SE_I[&quot;SpeakerEncoder Interface&quot;]
+                VAD_I[&quot;VAD Interface&quot;]
+                EH_I[&quot;SpeechEnhancer Interface&quot;]
+                RW_I[&quot;Rewriter Interface&quot;]
+                EMB_I[&quot;Embeddings Interface&quot;]
+            end
+
+            UI &lt;--&gt;|WebSocket| IG
+            UI &lt;--&gt;|WebSocket| OG
+            IG --&gt; EB
+            EB --&gt; OG
+            EB &lt;--&gt; ASR_M
+            EB &lt;--&gt; LLM_M
+            EB &lt;--&gt; TTS_M
+            EB &lt;--&gt; CAP_M
+            EB &lt;--&gt; TH_M
+            EB &lt;--&gt; TT_M
+            EB &lt;--&gt; VAD_M
+            EB &lt;--&gt; ENH_M
+            EB &lt;--&gt; SPK_M
+            EB &lt;--&gt; EMB_M
+            EB &lt;--&gt; RET_M
+            EB &lt;--&gt; LAT_M
+            LLM_M --&gt; Agent
+            Agent --&gt; Tools
+            ASR_M --&gt; ASR_I
+            TTS_M --&gt; TTS_I
+            CAP_M --&gt; CAP_I
+            SPK_M --&gt; SE_I
+            VAD_M --&gt; VAD_I
+            ENH_M --&gt; EH_I
+            TH_M --&gt; RW_I
+            EMB_M --&gt; EMB_I</code></pre>
+        <hr>
+        <h3>项目目录结构</h3>
+        <pre><code>xtalk/
+        ├── src/xtalk/                         # Python 后端核心
+        │   ├── api.py                         # Xtalk 高级 API 入口 (from_config, connect)
+        │   ├── model_types.py                 # 导出所有模型接口类型
+        │   ├── events.py                      # 顶层事件 re-export
+        │   ├── log_utils.py                   # 共享 logger
+        │   ├── serving/                       # 事件中心 &amp; 服务层
+        │   │   ├── event_bus.py               # EventBus 异步事件总线
+        │   │   ├── events.py                  # ~50+ 事件类型定义
+        │   │   ├── interfaces.py             # Manager / EventListenerMixin 基类
+        │   │   ├── service.py                 # Service / DefaultService
+        │   │   ├── service_manager.py         # 多会话管理
+        │   │   ├── session_limiter.py         # 并发限制
+        │   │   └── modules/                   # 12 个 Manager 实现
+        │   │       ├── input_gateway.py       # WebSocket → 内部事件
+        │   │       ├── output_gateway.py      # 内部事件 → WebSocket
+        │   │       ├── asr_manager.py         # ASR 编排
+        │   │       ├── tts_manager.py         # TTS 编排
+        │   │       ├── llm_agent_manager.py   # LLM Agent 编排
+        │   │       ├── turn_taking_manager.py # 轮次控制 (中断/恢复)
+        │   │       ├── captioner_manager.py   # 音频描述
+        │   │       ├── thought_manager.py     # 思维链重写
+        │   │       ├── retrieval_manager.py   # RAG 检索
+        │   │       ├── latency_manager.py     # 延迟度量
+        │   │       ├── vad_manager.py         # 后端 VAD
+        │   │       ├── enhancer_manager.py    # 语音增强
+        │   │       ├── speaker_manager.py     # 说话人识别
+        │   │       ├── embeddings_manager.py  # 文本嵌入
+        │   │       └── recording_manager.py   # 录音管理
+        │   ├── pipelines/                     # 管线 (模型容器)
+        │   │   ├── interfaces.py             # Pipeline 抽象基类
+        │   │   ├── default.py                 # DefaultPipeline (dataclass 模型容器)
+        │   │   └── context.py                 # PipelineContext (运行时上下文)
+        │   ├── speech/                        # 语音模型层
+        │   │   ├── interfaces.py             # ASR / TTS / Captioner / VAD 等抽象接口
+        │   │   ├── asr/                       # ASR 实现 (7 种)
+        │   │   ├── tts/                       # TTS 实现 (8 种)
+        │   │   ├── captioner/                 # 音频描述模型
+        │   │   ├── vad/                       # VAD 实现
+        │   │   ├── speech_enhancer/           # 语音增强
+        │   │   ├── speaker_encoder/           # 说话人编码
+        │   │   ├── speech_speed_controller/   # 语速控制
+        │   │   └── punt_restorer/             # 标点恢复
+        │   ├── llm_agent/                     # LLM Agent 层
+        │   │   ├── interfaces.py             # Agent 抽象基类
+        │   │   ├── default.py                 # DefaultAgent (Langchain, 含 tool use)
+        │   │   ├── dummy.py                   # DummyAgent (测试)
+        │   │   └── tools/                     # 内置工具
+        │   │       ├── pipeline_control.py    # 语音/情感/语速控制
+        │   │       ├── retrievers.py          # RAG / web_search
+        │   │       └── utils.py               # get_time 等
+        │   ├── llm/                           # LLM 底层模型
+        │   │   ├── dummy.py                   # DummyChatModel
+        │   │   └── qwen_local.py             # 本地 Qwen 模型
+        │   ├── rewriter/                      # 重写器 (caption/thought)
+        │   │   ├── interfaces.py             # Rewriter 抽象
+        │   │   └── simple.py                  # DefaultCaptionRewriter / DefaultThoughtRewriter
+        │   └── embeddings/                    # 嵌入模型
+        │       └── __init__.py                # OpenAIEmbeddings re-export
+        ├── frontend/                          # 浏览器客户端
+        │   └── src/
+        │       ├── index.js                   # 客户端核心 (VAD, audio, WebSocket)
+        │       ├── index.ts                   # TS 入口
+        │       └── vad-processor.worklet.js   # VAD AudioWorklet
+        ├── examples/sample_app/               # 示例应用
+        │   ├── configurable_server.py         # 可配置 FastAPI 服务器
+        │   ├── custom_model.py                # 自定义模型示例
+        │   ├── custom_service.py              # 自定义服务/事件示例
+        │   ├── echo_agent.py                  # EchoAgent 示例
+        │   ├── mental_consultant_server.py    # 心理咨询师示例 (含 tool use)
+        │   ├── static/                        # 前端静态文件
+        │   └── templates/                     # HTML 模板
+        ├── scripts/                           # 延迟测量脚本
+        │   ├── batch_latency_measure.py
+        │   └── latency_measure_client.py
+        └── pyproject.toml                     # 构建 &amp; 依赖配置</code></pre>
+        <hr>
+        <h3>核心架构详解</h3>
+        <h4>1. API 入口层 (<code>api.py</code> → <code>Xtalk</code> 类)</h4>
+        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/api.py">api.py</a></p>
+        <p><code>Xtalk</code> 是整个系统的高级接口：</p>
+        <p>| 方法 | 作用 | |------|------| | <code>from_config(path)</code> | 从 JSON 配置创建 Xtalk 实例 | | <code>connect(websocket)</code> | 接受 WebSocket 连接并启动会话 | | <code>register_model_search_spec(slot, spec)</code> | 注册自定义模型搜索路径 | | <code>embed_text(session_id, text)</code> | 向指定会话注入文本嵌入 | | <code>add_agent_tools(tools)</code> | 给 Agent 添加自定义工具 |</p>
+        <p><strong>模型注册表</strong> (<code>MODEL_REGISTRY</code>): 通过 slot name → import specs 映射，实现动态模型发现与加载。</p>
+        <h4>2. 事件驱动核心 (<code>serving/</code>)</h4>
+        <h5>EventBus</h5>
+        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/event_bus.py">event_bus.py</a></p>
+        <ul>
+          <li>基于 <code>asyncio.create_task</code> 的异步事件分发</li>
+          <li>支持优先级排序、错误隔离、事件历史追踪</li>
+          <li>所有 Manager 通过 <code>subscribe</code> / <code>publish</code> 松耦合通信</li>
+        </ul>
+        <h5>事件类型 (~50+ 种)</h5>
+        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/events.py">events.py</a></p>
+        <p>主要事件类别：</p>
+        <p>| 类别 | 关键事件 | 说明 | |------|----------|------| | <strong>Audio</strong> | <code>AudioFrameReceived</code>, <code>EnhancedAudioFrameReceived</code> | 音频帧输入 | | <strong>VAD</strong> | <code>VADSpeechStart</code>, <code>VADSpeechEnd</code> | 语音活动检测 | | <strong>ASR</strong> | <code>ASRResultPartial</code>, <code>ASRResultFinal</code>, <code>ASRStableSegmentReady</code> | 语音识别结果 | | <strong>LLM</strong> | <code>LLMAgentResponseUpdate</code>, <code>LLMAgentResponseFinish</code>, <code>LLMFirstChunk</code> | LLM 生成 | | <strong>TTS</strong> | <code>TTSStarted</code>, <code>TTSChunkGenerated</code>, <code>TTSFinished</code>, <code>TTSVoiceChange</code> | 语音合成 | | <strong>Turn</strong> | <code>TurnTTSStartRequested</code>, <code>TurnLLMAgentStartRequested</code> 等 | 轮次协调 | | <strong>Metrics</strong> | <code>LatencyMetricsUpdated</code> | 延迟监控 | | <strong>Speaker</strong> | <code>SpeakerRecognized</code> | 说话人识别 | | <strong>Caption</strong> | <code>CaptionUpdated</code>, <code>ThoughtUpdated</code> | 音频描述/思维链 | | <strong>Retrieval</strong> | <code>RetrievalUpdated</code>, <code>TextForEmbeddingReady</code> | RAG 检索 | | <strong>Switch</strong> | <code>TTSModelSwitchRequested</code>, <code>LLMModelSwitchRequested</code> | 运行时模型切换 |</p>
+        <h5>Manager 基类与事件绑定</h5>
+        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/interfaces.py">interfaces.py</a></p>
+        <ul>
+          <li><code>Manager</code> = <code>EventListenerMixin</code> + <code>ShutdownMixin</code></li>
+          <li>使用 <code>@Manager.event_handler(EventType)</code> 装饰器声明式绑定事件处理</li>
+          <li>通过 <code>EventListenerMeta</code> 元类在实例化时自动注册到 EventBus</li>
+          <li>支持运行时 <code>subscribe_event</code> / <code>unsubscribe_event</code> 进行事件路由重写</li>
+        </ul>
+        <h4>3. Service 层</h4>
+        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/service.py">service.py</a></p>
+        <ul>
+          <li>每个 WebSocket 会话 = 一个 <code>Service</code> 实例</li>
+          <li><code>Service</code> 创建 <code>EventBus</code> + <code>InputGateway</code> + <code>OutputGateway</code> + 12 个 <code>Manager</code></li>
+          <li><code>DefaultService</code> 预注册了全部 12 个 Manager</li>
+          <li><code>ServiceManager</code> 管理多个并发会话生命周期</li>
+          <li>支持 Prototype 模式 (clone) 复制会话</li>
+        </ul>
+        <h4>4. Pipeline 层 (模型容器)</h4>
+        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/pipelines/default.py">default.py</a></p>
+        <p><code>DefaultPipeline</code> 是一个 dataclass，作为所有模型实例的容器：</p>
+        <p>| 字段 | 模型类型 | 必需 | |------|----------|------| | <code>asr_model</code> | ASR | ✅ | | <code>llm_agent</code> | Agent | ✅ | | <code>tts_model</code> | TTS | ✅ | | <code>captioner_model</code> | Captioner | ❌ | | <code>punt_restorer_model</code> | PuntRestorer | ❌ | | <code>caption_rewriter</code> | Rewriter | ❌ | | <code>thought_rewriter</code> | Rewriter | ❌ | | <code>vad_model</code> | VAD | ❌ | | <code>enhancer_model</code> | SpeechEnhancer | ❌ | | <code>speaker_encoder</code> | SpeakerEncoder | ❌ | | <code>_speed_controller</code> | SpeechSpeedController | ❌ | | <code>embeddings_model</code> | Embeddings | ❌ |</p>
+        <ul>
+          <li>通过 <code>clone()</code> 为每个会话创建隔离的模型副本</li>
+          <li>字段 metadata 的 <code>clone: True</code> 标记哪些模型需要独立状态</li>
+        </ul>
+        <h4>5. 模型接口层 (<code>speech/interfaces.py</code>, <code>llm_agent/interfaces.py</code>)</h4>
+        <p>所有模型都通过<strong>抽象接口</strong>定义契约：</p>
+        <h5>ASR 接口</h5>
+        <p>| 方法 | 说明 | |------|------| | <code>recognize(audio: bytes) → str</code> | 单次识别 (必须实现) | | <code>recognize_stream(audio, is_final) → str</code> | 流式增量识别 (有默认实现) | | <code>reset()</code> | 重置状态 | | <code>clone()</code> | 克隆实例 |</p>
+        <blockquote>输入: PCM 16-bit mono 16kHz raw bytes</blockquote>
+        <h5>TTS 接口</h5>
+        <p>| 方法 | 说明 | |------|------| | <code>synthesize(text) → bytes</code> | 文本转语音 (必须实现) | | <code>synthesize_stream(text) → Iterable[bytes]</code> | 流式合成 (可选) | | <code>set_voice(voice_names)</code> | 切换说话人 | | <code>set_emotion(emotion)</code> | 切换情感 | | <code>clone()</code> | 克隆实例 |</p>
+        <blockquote>输出: PCM 16-bit mono 48kHz raw bytes</blockquote>
+        <h5>Agent 接口</h5>
+        <p>| 方法 | 说明 | |------|------| | <code>generate(input) → str \| (str, ToolCall[])</code> | 完整生成 | | <code>generate_stream(input) → Iterable[str \| ToolCall]</code> | 流式生成 | | <code>clone()</code> | 克隆实例 | | <code>add_tools(tools)</code> | 添加 Langchain 工具 |</p>
+        <blockquote>输入支持 <code>str</code> 或 <code>AgentInput(content, context)</code></blockquote>
+        <hr>
+        <h3>核心数据流</h3>
+        <pre><code>用户语音 → [Frontend VAD] → WebSocket
+            → InputGateway → AudioFrameReceived
+            → EnhancerManager → EnhancedAudioFrameReceived
+            → ASRManager → ASRResultPartial / ASRResultFinal
+            → TurnTakingManager → TurnLLMAgentStartRequested
+            → LLMAgentManager → LLMAgentResponseUpdate / LLMAgentResponseFinish
+            → TurnTakingManager → TurnTTSStartRequested
+            → TTSManager → TTSChunkGenerated
+            → OutputGateway → WebSocket → 浏览器播放</code></pre>
+        <p><strong>中断流程</strong>:</p>
+        <pre><code>用户再次说话 → VADSpeechStart
+            → TurnTakingManager → TurnTTSStopRequested + TurnLLMAgentStopRequested
+            → TTSManager 停止 / LLMAgentManager 停止
+            → 新一轮 ASR 开始</code></pre>
+        <hr>
+        <h3>扩展机制</h3>
+        <h4>添加新模型 (已有类型)</h4>
+        <ol>
+          <li>实现对应接口 (如 <code>ASR</code>, <code>TTS</code>)</li>
+          <li>通过 <code>Xtalk.register_model_search_spec(slot, spec)</code> 注册</li>
+          <li>在 JSON 配置中指定 <code>type</code> 和 <code>params</code></li>
+        </ol>
+        <h4>添加新功能 (自定义 Service)</h4>
+        <ol>
+          <li>定义新模型类 (含 <code>clone()</code>)</li>
+          <li>继承 <code>DefaultPipeline</code>，添加新字段</li>
+          <li>创建新 <code>Manager</code>，使用 <code>@event_handler</code> 装饰器订阅事件</li>
+          <li>可选: 使用 <code>create_event_class()</code> 创建新事件类型</li>
+          <li>使用 <code>subscribe_event</code> / <code>unsubscribe_event</code> 修改现有事件路由</li>
+        </ol>
+        <h4>配置驱动</h4>
+        <p>JSON 配置直接映射到模型类名和构造参数：</p>
+        <pre><code class="language-json">{
+            &quot;asr&quot;: { &quot;type&quot;: &quot;SherpaOnnxASR&quot;, &quot;params&quot;: { ... } },
+            &quot;llm_agent&quot;: { &quot;type&quot;: &quot;DefaultAgent&quot;, &quot;params&quot;: { ... } },
+            &quot;tts&quot;: { &quot;type&quot;: &quot;IndexTTS&quot;, &quot;params&quot;: { ... } }
+        }</code></pre>
+        <hr>
+        <h3>已支持模型一览</h3>
+        <p>| Slot | 模型 | 部署方式 | |------|------|----------| | <strong>asr</strong> | SherpaOnnxASR, Qwen3ASRFlashRealtime, Zipformer, ElevenLabs, SenseVoiceSmallLocal, ParaformerLocal | API / 本地 | | <strong>tts</strong> | IndexTTS, IndexTTS2, GPT-SoVITS, CosyVoice, CosyVoiceLocal, ElevenLabs, EdgeTTS | API / 本地 | | <strong>llm_agent</strong> | DefaultAgent (任意 OpenAI 兼容模型), DummyAgent | API / 本地 | | <strong>vad</strong> | SileroVAD, 前端 VAD | 本地 | | <strong>captioner</strong> | Qwen3OmniCaptioner | API | | <strong>speaker_encoder</strong> | PyannoteSpeakerEncoder | 本地 | | <strong>speech_enhancer</strong> | FastEnhancer (ONNX) | 本地 | | <strong>rewriter</strong> | DefaultCaptionRewriter, DefaultThoughtRewriter | API | | <strong>embeddings</strong> | OpenAIEmbeddings | API |</p>
+        <hr>
+        <h3>技术栈</h3>
+        <ul>
+          <li><strong>后端</strong>: 纯 Python 3.10+, FastAPI, asyncio, Langchain</li>
+          <li><strong>前端</strong>: Vanilla JS, WebSocket, AudioWorklet VAD</li>
+          <li><strong>通信</strong>: WebSocket (二进制音频 + JSON 信令)</li>
+          <li><strong>构建</strong>: setuptools + setuptools_scm</li>
+          <li><strong>代码规范</strong>: Black + Ruff + mypy</li>
+          <li><strong>测试</strong>: pytest</li>
+        </ul>
+        <hr>
+        <h3>后续行动</h3>
+        <blockquote>已完成对 X-Talk 系统架构的全面阅读。随时告诉我你需要增加什么功能，我可以基于上述架构分析制定实现计划。</blockquote>
       </article>
     </main>
   </body>

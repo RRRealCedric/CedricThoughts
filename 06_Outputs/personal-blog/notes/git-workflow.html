@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mac - Server - GitHub 工程工作流 | Cedric Notes</title>
+    <title>Mac 本地开发 - 服务器测试 - GitHub 协作工程指南 | Cedric Notes</title>
+    <meta name="description" content="定义本地开发、远端验证和多人协作之间的责任边界与闭环。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   </head>
@@ -11,24 +12,669 @@
     <main class="note-main">
       <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
       <header class="note-header">
-        <p class="note-meta">Engineering Workflow</p>
-        <h1>Mac 本地开发 - 服务器测试 - GitHub 协作</h1>
-        <p class="note-lede">本地 Mac 是开发工作台，GitHub 是代码事实源，服务器或 HPC 是实验与验证环境。</p>
+        <p class="note-meta">Project Note</p>
+        <h1>Mac 本地开发 - 服务器测试 - GitHub 协作工程指南</h1>
+        <p class="note-lede">定义本地开发、远端验证和多人协作之间的责任边界与闭环。</p>
       </header>
       <article class="note-content">
-        <h2>核心原则</h2>
-        <p>AI coding agent 适合在本地参与阅读、重构、测试生成和提交；服务器适合承担 GPU 训练、大规模测试、benchmark 与复现实验；GitHub 负责版本、协作、PR 和审查。</p>
-        <h2>推荐闭环</h2>
-        <pre><code>本地开发 → 本地测试 → push 到个人分支
-→ 服务器拉取测试 → 回传日志 → 修复 → PR 到团队 dev</code></pre>
-        <h2>角色边界</h2>
+        <h2>Mac 本地开发 - 服务器测试 - GitHub 协作工程指南</h2>
+        <p>本文档定义一套适用于“本地使用 AI coding agent 开发，服务器/HPC 负责测试训练，GitHub 负责多人协作与版本管理”的工程工作流。</p>
+        <p>适用场景：</p>
         <ul>
-          <li>本地负责轻量开发和 AI agent 辅助编码。</li>
-          <li>GitHub 负责版本事实源、分支管理与 Pull Request。</li>
-          <li>服务器负责资源密集型测试、训练和评估。</li>
+          <li>开发者在本地 Mac 上可以顺畅使用 Claude、GPT、Cursor、Codex、Aider 等 AI coding agent；</li>
+          <li>服务器/HPC 具备训练、GPU、数据或特殊运行环境，但不适合运行 AI agent；</li>
+          <li>团队通过 GitHub 协作开发；</li>
+          <li>部分代码必须经过服务器测试、训练或 benchmark 后才能合入团队分支。</li>
         </ul>
-        <h2>实践意义</h2>
-        <p>这套工作流的目标是减少“代码只在某台机器上存在”的风险，让实验、日志、修复和审查形成可复盘的工程链路。</p>
+        <p>核心原则：</p>
+        <blockquote>本地 Mac 是开发工作台，GitHub 是代码事实源，服务器是实验与验证环境。</blockquote>
+        <hr>
+        <h3>1. 整体架构</h3>
+        <pre><code class="language-text">┌──────────────────────────┐
+        │        Mac 本地           │
+        │ AI agent / IDE / 小测试   │
+        └────────────┬─────────────┘
+                     │ push / PR
+                     ▼
+        ┌──────────────────────────┐
+        │        个人 GitHub        │
+        │ fork / feature 分支       │
+        └────────────┬─────────────┘
+                     │ pull / fetch
+                     ▼
+        ┌──────────────────────────┐
+        │       服务器 / HPC        │
+        │ smoke test / train / eval │
+        └────────────┬─────────────┘
+                     │ 日志 / 指标 / 报告
+                     ▼
+        ┌──────────────────────────┐
+        │        公用 GitHub        │
+        │ PR → dev → main           │
+        └──────────────────────────┘</code></pre>
+        <p>推荐闭环：</p>
+        <pre><code class="language-text">本地开发 → 本地测试 → push 到个人分支 → 服务器拉取测试 → 回传日志 → 修复 → PR 到公用 dev</code></pre>
+        <hr>
+        <h3>2. 角色分工</h3>
+        <h4>2.1 本地 Mac</h4>
+        <p>本地负责：</p>
+        <ul>
+          <li>AI agent 辅助编码；</li>
+          <li>阅读、重构、生成测试；</li>
+          <li>运行轻量单元测试；</li>
+          <li>提交 Git commit；</li>
+          <li>发起 Pull Request；</li>
+          <li>分析服务器日志并修复代码。</li>
+        </ul>
+        <p>本地不负责：</p>
+        <ul>
+          <li>长期保存大数据集；</li>
+          <li>保存大模型权重；</li>
+          <li>运行高资源训练任务；</li>
+          <li>作为团队唯一代码源。</li>
+        </ul>
+        <h4>2.2 GitHub</h4>
+        <p>GitHub 负责：</p>
+        <ul>
+          <li>保存代码版本；</li>
+          <li>管理多人协作；</li>
+          <li>管理分支；</li>
+          <li>管理 Pull Request；</li>
+          <li>触发 CI；</li>
+          <li>保存小型报告、测试日志摘要和文档。</li>
+        </ul>
+        <p>GitHub 不应保存：</p>
+        <ul>
+          <li>大型数据集；</li>
+          <li>模型权重；</li>
+          <li>训练输出；</li>
+          <li>个人密钥；</li>
+          <li><code>.env</code> 文件；</li>
+          <li>服务器私有路径中的临时文件。</li>
+        </ul>
+        <h4>2.3 服务器 / HPC</h4>
+        <p>服务器负责：</p>
+        <ul>
+          <li>GPU 训练；</li>
+          <li>大规模测试；</li>
+          <li>benchmark；</li>
+          <li>数据集访问；</li>
+          <li>复现实验；</li>
+          <li>生成运行日志与实验报告。</li>
+        </ul>
+        <p>服务器不负责：</p>
+        <ul>
+          <li>主要代码开发；</li>
+          <li>AI agent 交互式编码；</li>
+          <li>保存未提交的重要代码修改；</li>
+          <li>直接向公用 <code>dev</code> 分支推送未经审查代码。</li>
+        </ul>
+        <hr>
+        <h3>3. GitHub 仓库关系</h3>
+        <p>推荐使用两个远端：</p>
+        <pre><code class="language-text">origin   = 个人 GitHub 仓库 / fork
+        upstream = 团队公用 GitHub 仓库</code></pre>
+        <p>示例：</p>
+        <pre><code class="language-bash">git remote -v</code></pre>
+        <p>应类似：</p>
+        <pre><code class="language-text">origin    git@github.com:yourname/project.git
+        upstream  git@github.com:team/project.git</code></pre>
+        <p>如果还没有设置 <code>upstream</code>：</p>
+        <pre><code class="language-bash">git remote add upstream git@github.com:team/project.git</code></pre>
+        <hr>
+        <h3>4. 分支策略</h3>
+        <p>推荐分支模型：</p>
+        <pre><code class="language-text">main                 稳定版本分支
+        dev                  团队开发集成分支
+        feature/xxx          个人功能分支
+        fix/xxx              bug 修复分支
+        exp/xxx              实验性分支</code></pre>
+        <h4>4.1 main</h4>
+        <p><code>main</code> 是稳定分支，只合入经过充分验证的版本。</p>
+        <p>规则：</p>
+        <ul>
+          <li>不直接 push；</li>
+          <li>只通过 PR 合并；</li>
+          <li>必须通过 CI；</li>
+          <li>必须经过 review。</li>
+        </ul>
+        <h4>4.2 dev</h4>
+        <p><code>dev</code> 是团队开发集成分支。</p>
+        <p>规则：</p>
+        <ul>
+          <li>个人功能完成后向 <code>dev</code> 发 PR；</li>
+          <li>不建议直接 push；</li>
+          <li>合入前至少完成本地测试；</li>
+          <li>涉及训练、推理、数据处理的代码，应完成服务器 smoke test。</li>
+        </ul>
+        <h4>4.3 feature 分支</h4>
+        <p>每个功能一个分支，例如：</p>
+        <pre><code class="language-bash">git checkout -b feature/memory-module</code></pre>
+        <p>命名建议：</p>
+        <pre><code class="language-text">feature/add-memory-module
+        feature/refactor-audio-pipeline
+        fix/server-config-path
+        exp/new-training-loss</code></pre>
+        <hr>
+        <h3>5. 项目目录规范</h3>
+        <p>推荐结构：</p>
+        <pre><code class="language-text">project/
+        ├── src/                         核心源码
+        ├── tests/                       单元测试
+        ├── scripts/                     可执行脚本
+        │   ├── train.py
+        │   ├── eval.py
+        │   └── smoke_test.py
+        ├── configs/                     配置文件
+        │   ├── local.yaml
+        │   ├── server.yaml
+        │   └── experiments/
+        ├── harness/                     工程验证脚本
+        │   ├── run_local_checks.sh
+        │   ├── run_server_smoke.sh
+        │   └── collect_results.sh
+        ├── docs/                        项目文档
+        ├── reports/                     小型报告和日志摘要
+        ├── .github/
+        │   ├── workflows/
+        │   │   └── ci.yml
+        │   └── pull_request_template.md
+        ├── .gitignore
+        ├── README.md
+        ├── SERVER.md
+        └── pyproject.toml / requirements.txt</code></pre>
+        <hr>
+        <h3>6. <code>.gitignore</code> 规范</h3>
+        <p>项目根目录必须有 <code>.gitignore</code>。</p>
+        <p>推荐内容：</p>
+        <pre><code class="language-gitignore"># Python
+        __pycache__/
+        *.py[cod]
+        .pytest_cache/
+        .mypy_cache/
+        .ruff_cache/
+
+        # Virtual environments
+        .venv/
+        venv/
+        env/
+
+        # Jupyter
+        .ipynb_checkpoints/
+
+        # Data and outputs
+        data/
+        datasets/
+        outputs/
+        runs/
+        logs/
+        checkpoints/
+        wandb/
+
+        # Model files
+        *.pt
+        *.pth
+        *.ckpt
+        *.onnx
+        *.npz
+        *.h5
+
+        # Environment variables / secrets
+        .env
+        .env.local
+        *.key
+        *.pem
+
+        # OS / editor
+        .DS_Store
+        .vscode/
+        .idea/</code></pre>
+        <p>注意：</p>
+        <p>如果某个文件已经被 Git 跟踪，再加入 <code>.gitignore</code> 不会自动停止跟踪。需要执行：</p>
+        <pre><code class="language-bash">git rm --cached path/to/file</code></pre>
+        <p>如果是整个目录：</p>
+        <pre><code class="language-bash">git rm -r --cached data/</code></pre>
+        <hr>
+        <h3>7. 本地开发流程</h3>
+        <h4>7.1 同步团队最新代码</h4>
+        <pre><code class="language-bash">git fetch upstream
+        git checkout dev
+        git pull --ff-only upstream dev</code></pre>
+        <h4>7.2 新建功能分支</h4>
+        <pre><code class="language-bash">git checkout -b feature/xxx</code></pre>
+        <h4>7.3 使用 AI agent 开发</h4>
+        <p>推荐给 agent 的提示词：</p>
+        <pre><code class="language-text">你是本项目的 coding agent。请先不要修改代码。
+        请阅读 README、src/、tests/、configs/ 中与任务相关的文件。
+
+        目标：实现 XXX。
+
+        约束：
+        1. 保持现有 API 兼容；
+        2. 不要引入大型依赖；
+        3. 必须补充或更新测试；
+        4. 修改前先输出计划；
+        5. 修改后运行 harness/run_local_checks.sh；
+        6. 不要改动 data、outputs、checkpoints、.env 等文件。</code></pre>
+        <p>开发原则：</p>
+        <pre><code class="language-text">小步修改 → 本地测试 → agent 自审 → 人类检查 → commit</code></pre>
+        <p>不要让 agent 一次性大范围重写整个项目。</p>
+        <hr>
+        <h3>8. 本地测试 harness</h3>
+        <p>项目应提供统一测试入口：</p>
+        <pre><code class="language-bash">bash harness/run_local_checks.sh</code></pre>
+        <p>示例：</p>
+        <pre><code class="language-bash">#!/usr/bin/env bash
+        set -euo pipefail
+
+        echo &quot;[1/5] format&quot;
+        ruff format .
+
+        echo &quot;[2/5] lint&quot;
+        ruff check .
+
+        echo &quot;[3/5] type check&quot;
+        mypy src || true
+
+        echo &quot;[4/5] unit tests&quot;
+        pytest tests -q
+
+        echo &quot;[5/5] smoke test&quot;
+        python scripts/smoke_test.py --config configs/local.yaml</code></pre>
+        <p>如果项目不是 Python，可替换为对应语言的检查命令。</p>
+        <p>原则：</p>
+        <ul>
+          <li>本地 harness 必须轻量；</li>
+          <li>可以在几分钟内跑完；</li>
+          <li>不依赖大数据；</li>
+          <li>不依赖 GPU；</li>
+          <li>必须能被 AI agent 调用和理解。</li>
+        </ul>
+        <hr>
+        <h3>9. 提交到个人 GitHub</h3>
+        <p>完成本地修改和测试后：</p>
+        <pre><code class="language-bash">git status
+        git add .
+        git commit -m &quot;feat: add xxx&quot;
+        git push -u origin feature/xxx</code></pre>
+        <p>提交信息建议：</p>
+        <pre><code class="language-text">feat: add memory storage interface
+        fix: resolve server config path
+        refactor: simplify audio pipeline
+        chore: update gitignore
+        test: add smoke test for training loop
+        docs: add server usage guide</code></pre>
+        <hr>
+        <h3>10. 服务器测试流程</h3>
+        <h4>10.1 首次克隆项目</h4>
+        <p>服务器上：</p>
+        <pre><code class="language-bash">mkdir -p ~/projects
+        cd ~/projects
+        git clone git@github.com:yourname/project.git
+        cd project</code></pre>
+        <p>如需同时访问团队仓库：</p>
+        <pre><code class="language-bash">git remote add upstream git@github.com:team/project.git</code></pre>
+        <h4>10.2 拉取个人功能分支</h4>
+        <pre><code class="language-bash">cd ~/projects/project
+        git fetch origin
+        git checkout feature/xxx
+        git pull --ff-only origin feature/xxx</code></pre>
+        <p>如果分支不存在：</p>
+        <pre><code class="language-bash">git checkout -b feature/xxx origin/feature/xxx</code></pre>
+        <h4>10.3 运行服务器 smoke test</h4>
+        <p>统一入口：</p>
+        <pre><code class="language-bash">bash harness/run_server_smoke.sh</code></pre>
+        <p>推荐写法：</p>
+        <pre><code class="language-bash">#!/usr/bin/env bash
+        set -euo pipefail
+
+        echo &quot;[server] host&quot;
+        hostname
+
+        echo &quot;[server] date&quot;
+        date
+
+        echo &quot;[server] GPU&quot;
+        nvidia-smi || true
+
+        echo &quot;[server] python&quot;
+        python -V
+
+        echo &quot;[server] smoke train&quot;
+        python scripts/train.py \
+          --config configs/server.yaml \
+          --max-steps 20 \
+          --output-dir outputs/smoke_$(date +%Y%m%d_%H%M%S)
+
+        echo &quot;[server] smoke eval&quot;
+        python scripts/eval.py \
+          --config configs/server.yaml \
+          --latest-output outputs</code></pre>
+        <p>保存日志：</p>
+        <pre><code class="language-bash">mkdir -p reports
+        bash harness/run_server_smoke.sh 2&gt;&amp;1 | tee reports/server_smoke_$(date +%Y%m%d_%H%M%S).log</code></pre>
+        <hr>
+        <h3>11. 服务器与本地之间传输日志</h3>
+        <p>从本地 Mac 拉取服务器日志：</p>
+        <pre><code class="language-bash">scp xiaoyu.xing@server:~/projects/project/reports/server_smoke_*.log ./reports/</code></pre>
+        <p>也可以只拉取最新日志：</p>
+        <pre><code class="language-bash">scp xiaoyu.xing@server:~/projects/project/reports/server_smoke_20260508_120000.log ./reports/</code></pre>
+        <p>然后把日志交给本地 AI agent 分析：</p>
+        <pre><code class="language-text">这是服务器 smoke test 日志。请判断：
+        1. 是否通过；
+        2. 如果失败，根因是什么；
+        3. 应该修改代码、配置还是服务器环境；
+        4. 给出最小修复方案；
+        5. 修复后需要补充哪些测试。</code></pre>
+        <hr>
+        <h3>12. 临时同步：rsync</h3>
+        <p>推荐主路径是 Git：</p>
+        <pre><code class="language-text">本地 commit → push GitHub → 服务器 pull</code></pre>
+        <p>但在高频调试阶段，可以临时用 <code>rsync</code>。</p>
+        <p>示例脚本：</p>
+        <pre><code class="language-bash">#!/usr/bin/env bash
+        set -euo pipefail
+
+        SERVER=&quot;xiaoyu.xing@server&quot;
+        REMOTE_DIR=&quot;/path/to/server/project&quot;
+
+        rsync -avz --delete \
+          --exclude &quot;.git&quot; \
+          --exclude &quot;.venv&quot; \
+          --exclude &quot;__pycache__&quot; \
+          --exclude &quot;.pytest_cache&quot; \
+          --exclude &quot;.mypy_cache&quot; \
+          --exclude &quot;.ruff_cache&quot; \
+          --exclude &quot;outputs&quot; \
+          --exclude &quot;runs&quot; \
+          --exclude &quot;checkpoints&quot; \
+          --exclude &quot;data&quot; \
+          ./ &quot;$SERVER:$REMOTE_DIR/&quot;</code></pre>
+        <p>注意：</p>
+        <ul>
+          <li><code>rsync</code> 只用于临时调试；</li>
+          <li>最终合并必须通过 Git commit 和 PR；</li>
+          <li>不要用 <code>rsync</code> 覆盖服务器上的数据集和实验结果。</li>
+        </ul>
+        <hr>
+        <h3>13. Pull Request 流程</h3>
+        <p>当服务器测试通过后，从个人分支向公用仓库 <code>dev</code> 发 PR。</p>
+        <p>PR 方向：</p>
+        <pre><code class="language-text">base: team/project dev
+        compare: yourname/project feature/xxx</code></pre>
+        <p>不要直接 push 到公用 <code>dev</code>。</p>
+        <h4>13.1 PR 模板</h4>
+        <p><code>.github/pull_request_template.md</code>：</p>
+        <pre><code class="language-markdown">## Summary
+
+        简要说明本 PR 做了什么。
+
+        ## Changes
+
+        -
+        -
+        -
+
+        ## Local validation
+
+        - [ ] `bash harness/run_local_checks.sh` passed
+        - [ ] Added/updated tests
+        - [ ] No large files committed
+
+        ## Server validation
+
+        - [ ] Not needed
+        - [ ] `bash harness/run_server_smoke.sh` passed
+        - Log/report:
+
+        ## Risks
+
+        可能影响的模块：
+
+        ## Notes for reviewers
+
+        希望 reviewer 重点看的地方：</code></pre>
+        <hr>
+        <h3>14. AI agent 审查流程</h3>
+        <p>在发 PR 前，让 AI agent 以 reviewer 身份审查。</p>
+        <p>推荐提示词：</p>
+        <pre><code class="language-text">你现在不是实现者，而是代码审查员。
+
+        请审查当前分支相对 dev 的 diff：
+        1. 是否有明显 bug；
+        2. 是否破坏现有 API；
+        3. 是否缺少测试；
+        4. 是否有路径硬编码；
+        5. 是否有随机性不可复现问题；
+        6. 是否有大文件、密钥、token、实验输出误提交；
+        7. 是否有服务器环境不兼容问题。
+
+        请按照：
+        - Blocker
+        - Major
+        - Minor
+        - Suggested tests
+        输出。
+        不要直接修改代码，先给 review。</code></pre>
+        <p>生成 diff：</p>
+        <pre><code class="language-bash">git fetch upstream
+        git diff upstream/dev...HEAD</code></pre>
+        <hr>
+        <h3>15. GitHub Actions CI</h3>
+        <p>如果项目支持自动 CI，可以添加：</p>
+        <pre><code class="language-yaml">name: CI
+
+        on:
+          pull_request:
+          push:
+            branches: [main, dev]
+
+        jobs:
+          local-checks:
+            runs-on: ubuntu-latest
+
+            steps:
+              - uses: actions/checkout@v4
+
+              - name: Set up Python
+                uses: actions/setup-python@v5
+                with:
+                  python-version: &quot;3.11&quot;
+
+              - name: Install dependencies
+                run: |
+                  python -m pip install -U pip
+                  pip install -e &quot;.[dev]&quot;
+
+              - name: Run local harness
+                run: |
+                  bash harness/run_local_checks.sh</code></pre>
+        <p>CI 只做轻量测试，不跑大规模训练。</p>
+        <p>大规模训练仍放在服务器上执行。</p>
+        <hr>
+        <h3>16. 大文件与实验产物管理</h3>
+        <p>不要提交：</p>
+        <pre><code class="language-text">data/
+        datasets/
+        outputs/
+        runs/
+        checkpoints/
+        wandb/
+        *.pt
+        *.pth
+        *.ckpt
+        *.onnx
+        *.npz
+        *.h5</code></pre>
+        <p>推荐服务器目录：</p>
+        <pre><code class="language-text">~/datasets/project_name/
+        ~/runs/project_name/
+        ~/checkpoints/project_name/</code></pre>
+        <p>代码通过配置文件引用这些路径：</p>
+        <pre><code class="language-yaml">data_root: /server/path/datasets/project_name
+        output_root: /server/path/runs/project_name</code></pre>
+        <p>不要把服务器绝对路径硬编码进源码。</p>
+        <hr>
+        <h3>17. 配置文件规范</h3>
+        <p>至少维护两套配置：</p>
+        <pre><code class="language-text">configs/local.yaml
+        configs/server.yaml</code></pre>
+        <h4>local.yaml</h4>
+        <pre><code class="language-yaml">data_root: ./data/small
+        output_root: ./outputs/local
+        max_steps: 10
+        batch_size: 2
+        device: cpu</code></pre>
+        <h4>server.yaml</h4>
+        <pre><code class="language-yaml">data_root: /server/path/datasets/project_name
+        output_root: /server/path/runs/project_name
+        max_steps: 10000
+        batch_size: 32
+        device: cuda</code></pre>
+        <p>原则：</p>
+        <ul>
+          <li>本地配置轻量；</li>
+          <li>服务器配置完整；</li>
+          <li>路径写在配置里，不写死在代码里；</li>
+          <li>配置文件可以被命令行覆盖。</li>
+        </ul>
+        <hr>
+        <h3>18. 服务器环境文档 SERVER.md</h3>
+        <p>每个项目建议写 <code>SERVER.md</code>。</p>
+        <p>模板：</p>
+        <pre><code class="language-markdown"># Server Guide
+
+        ## Server
+
+        Host: xxx
+        Project path: ~/projects/project
+        Data path: /path/to/dataset
+        Output path: /path/to/runs
+
+        ## Update code
+        </code></pre>
+        <p>git fetch origin git checkout &lt;branch&gt; git pull --ff-only origin &lt;branch&gt;</p>
+        <pre><code>
+        ## Run smoke test
+        </code></pre>
+        <p>bash harness/run_server_smoke.sh</p>
+        <pre><code>
+        ## Run training
+        </code></pre>
+        <p>python scripts/train.py --config configs/server.yaml</p>
+        <pre><code>
+        ## Collect logs
+        </code></pre>
+        <p>scp user@server:~/projects/project/reports/*.log ./reports/</p>
+        <pre><code>
+        ## Notes
+
+        - Do not edit source code directly on server unless necessary.
+        - Do not commit data, checkpoints, or outputs.
+        - Keep server-specific paths in configs/server.yaml.</code></pre>
+        <hr>
+        <h3>19. 每日开发流程清单</h3>
+        <h4>开始开发</h4>
+        <pre><code class="language-bash">git fetch upstream
+        git checkout dev
+        git pull --ff-only upstream dev
+        git checkout -b feature/xxx</code></pre>
+        <h4>本地开发</h4>
+        <pre><code class="language-text">AI agent 读代码 → 输出计划 → 小步修改 → 本地测试</code></pre>
+        <h4>本地验证</h4>
+        <pre><code class="language-bash">bash harness/run_local_checks.sh</code></pre>
+        <h4>推送个人分支</h4>
+        <pre><code class="language-bash">git add .
+        git commit -m &quot;feat: xxx&quot;
+        git push -u origin feature/xxx</code></pre>
+        <h4>服务器验证</h4>
+        <pre><code class="language-bash">ssh server
+        cd ~/projects/project
+        git fetch origin
+        git checkout feature/xxx
+        git pull --ff-only origin feature/xxx
+        bash harness/run_server_smoke.sh 2&gt;&amp;1 | tee reports/server_smoke_xxx.log</code></pre>
+        <h4>回收日志</h4>
+        <pre><code class="language-bash">scp server:~/projects/project/reports/server_smoke_xxx.log ./reports/</code></pre>
+        <h4>修复并更新</h4>
+        <pre><code class="language-bash">git add .
+        git commit -m &quot;fix: xxx&quot;
+        git push</code></pre>
+        <h4>发 PR</h4>
+        <pre><code class="language-text">yourname/project:feature/xxx → team/project:dev</code></pre>
+        <hr>
+        <h3>20. 常见问题与处理</h3>
+        <h4>20.1 服务器上能不能直接改代码？</h4>
+        <p>可以临时改，但不推荐。</p>
+        <p>如果必须改：</p>
+        <pre><code class="language-bash">git diff &gt; server_debug.patch</code></pre>
+        <p>然后把 patch 拉回本地：</p>
+        <pre><code class="language-bash">scp server:~/projects/project/server_debug.patch .
+        git apply server_debug.patch</code></pre>
+        <p>最终仍在本地 commit 和 push。</p>
+        <h4>20.2 服务器上有未提交修改，无法 pull 怎么办？</h4>
+        <p>先看：</p>
+        <pre><code class="language-bash">git status
+        git diff</code></pre>
+        <p>如果是不需要的临时修改：</p>
+        <pre><code class="language-bash">git restore .</code></pre>
+        <p>如果要保留：</p>
+        <pre><code class="language-bash">git stash push -m &quot;server temporary changes&quot;
+        git pull --ff-only</code></pre>
+        <h4>20.3 本地和服务器环境不一致怎么办？</h4>
+        <p>把差异写进：</p>
+        <pre><code class="language-text">configs/local.yaml
+        configs/server.yaml
+        SERVER.md</code></pre>
+        <p>不要写死在源码中。</p>
+        <h4>20.4 测试通过但 PR 冲突怎么办？</h4>
+        <p>本地同步 <code>dev</code>：</p>
+        <pre><code class="language-bash">git fetch upstream
+        git checkout feature/xxx
+        git merge upstream/dev</code></pre>
+        <p>解决冲突后：</p>
+        <pre><code class="language-bash">bash harness/run_local_checks.sh
+        git push</code></pre>
+        <p>如有必要，重新跑服务器 smoke test。</p>
+        <h4>20.5 什么时候可以合并到 dev？</h4>
+        <p>至少满足：</p>
+        <pre><code class="language-text">本地 harness 通过
+        PR 描述清楚
+        没有大文件和密钥
+        关键功能有测试
+        必要时服务器 smoke test 通过
+        至少一名队友 review</code></pre>
+        <hr>
+        <h3>21. 最小落地清单</h3>
+        <p>一个新项目最少需要准备：</p>
+        <pre><code class="language-text">.gitignore
+        README.md
+        SERVER.md
+        configs/local.yaml
+        configs/server.yaml
+        harness/run_local_checks.sh
+        harness/run_server_smoke.sh
+        .github/pull_request_template.md</code></pre>
+        <p>团队只要遵循这套流程，就可以做到：</p>
+        <ul>
+          <li>本地 AI agent 高效开发；</li>
+          <li>GitHub 可审查、可回滚；</li>
+          <li>服务器测试可复现；</li>
+          <li>大文件不污染仓库；</li>
+          <li>新成员能快速上手；</li>
+          <li>公用 <code>dev</code> 分支保持相对稳定。</li>
+        </ul>
+        <hr>
+        <h3>22. 最终原则</h3>
+        <pre><code class="language-text">1. 代码进 GitHub。
+        2. 大数据和模型不进 GitHub。
+        3. 本地负责开发，服务器负责验证。
+        4. 个人分支通过测试后再 PR 到公用 dev。
+        5. 不直接向公用 dev 推送未经审查代码。
+        6. AI agent 可以写代码，但必须经过 harness 和人类 review。
+        7. 所有服务器操作都尽量脚本化、文档化、可复现。</code></pre>
+        <p>一句话总结：</p>
+        <blockquote>Mac 是开发工作台，GitHub 是协作事实源，服务器是实验工厂，harness 是三者之间的标准接口。</blockquote>
       </article>
     </main>
   </body>

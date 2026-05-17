@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Algèbre 与 Topologie 学习笔记 | Cedric Notes</title>
+    <title>Algèbre Ch1 Polynôme | Cedric Notes</title>
+    <meta name="description" content="线性代数与多项式学习笔记。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   </head>
@@ -11,21 +12,533 @@
     <main class="note-main">
       <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
       <header class="note-header">
-        <p class="note-meta">Mathematics</p>
-        <h1>Algèbre 与 Topologie 学习笔记</h1>
-        <p class="note-lede">数学笔记用于沉淀定义、定理、证明结构和例题方法，重点保持概念之间的可追踪关系。</p>
+        <p class="note-meta">Learning</p>
+        <h1>Algèbre Ch1 Polynôme</h1>
+        <p class="note-lede">线性代数与多项式学习笔记。</p>
       </header>
       <article class="note-content">
-        <h2>当前主题</h2>
+        <h4>专家的心智模型：将多项式看作“穿了马甲的整数”</h4>
+        <p>在高等代数中，专家看待一元多项式环 $\mathbb{K}[X]$ 的底层直觉非常简单：<strong>它完美复刻了整数集 $\mathbb{Z}$ 的算术规则</strong>。所有定理，本质上都只是为了在一片新的土地（多项式）上，重建我们在小学就熟悉的整数法则。</p>
         <ul>
-          <li>Polynôme：多项式、因式分解、根与代数结构。</li>
-          <li>Sous-espaces vectoriels：向量子空间、线性组合、基与维数。</li>
-          <li>Réduction des endomorphismes：特征值、特征向量、可对角化与标准形。</li>
-          <li>Normes, EVN, continuité：赋范空间、连续性与拓扑结构。</li>
-          <li>Différenciabilité：可微性、线性近似与多元分析。</li>
+          <li><strong>衡量大小的尺子变了</strong>：在 $\mathbb{Z}$ 中，我们用“绝对值”来判断数的大小；在 $\mathbb{K}[X]$ 中，我们用 <strong>“次数（Degré）”</strong> 来衡量多项式的体量。</li>
         </ul>
-        <h2>整理原则</h2>
-        <p>每一块内容都应该区分定义、命题、证明、例题和易错点。对长期学习来说，真正重要的是把概念之间的依赖关系建立起来。</p>
+        <ul>
+          <li><strong>唯一性的基准变了</strong>：在 $\mathbb{Z}$ 中，为了消除正负号的歧义，我们规定最大公约数必须是正数（例如 $PGCD(4, -6) = 2$）；在 $\mathbb{K}[X]$ 中，为了消除常数倍的歧义，我们规定 PGCD 和 PPCM 必须是 <strong>“首一多项式（Unitaire）”</strong>。</li>
+        </ul>
+        <p>一旦你接受了“多项式就是整数”这个心智模型，这堆繁杂的知识点就会自动坍缩为一个层层递进的逻辑金字塔。</p>
+        <hr>
+        <h3>第一章前半部分</h3>
+        <p>我们可以将截至目前的内容划分为四个递进的维度：<strong>基础定义与结构、测度、运算、结构、定理</strong>。</p>
+        <h4>〇、基础定义与结构</h4>
+        <ul>
+          <li><strong>多项式的定义</strong>：存在 N 使得任意 n大于等于 N，an = 0.</li>
+        </ul>
+        <ul>
+          <li><strong>两个多项式相等当且仅当系数相等；多项式等于0当且仅当所有系数为0</strong></li>
+        </ul>
+        <ul>
+          <li><strong>柯西乘积</strong>：$c_n = \sum_{i + j = n} a_i b_j$</li>
+        </ul>
+        <p>$c_k = 0 \text{ pour } k &gt; p+q$ $c_{p+q} = a_p b_q$</p>
+        <ul>
+          <li><strong>群的结构：</strong> 交换律、加法结合律、加法零元、逆元</li>
+          <li>符合交换律的是阿贝尔群/交换群</li>
+        </ul>
+        <ul>
+          <li><strong>环的结构：</strong> 交换律、乘法交换律、乘法零元、乘法分配律、标量下乘法交换律</li>
+        </ul>
+        <ul>
+          <li>二项式公式</li>
+        </ul>
+        <ul>
+          <li>$P^n - Q^n$</li>
+        </ul>
+        <h4>一、 测度层：多项式的“尺子”</h4>
+        <p>这是整个理论的起点。要对多项式进行操作，首先必须能衡量它。</p>
+        <ul>
+          <li><strong>次数（Degré）</strong>：核心工具。一切关于多项式有没有解、除不除得尽的问题，首先看次数。</li>
+        </ul>
+        <ul>
+          <li>核心法则：$\deg(PQ) = \deg P + \deg Q$。</li>
+        </ul>
+        <ul>
+          <li>这个法则保证了 $\mathbb{K}[X]$ 是一个<strong>整环（Anneau intègre）</strong>，即两个非零多项式相乘绝不可能变成零多项式。$PQ = 0 \leftrightarrow P = 0 \text{ ou } Q = 0$ 这也引出了可逆元素只能是非零常数。</li>
+        </ul>
+        <p>在此层，我们定义研究对象及其度量工具。多项式的结构完全依赖于它的系数和次数。</p>
+        <ul>
+          <li><strong>定义：首一多项式（Polynôme unitaire）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：最高次项的系数为 $1$ 的多项式。</li>
+        </ul>
+        <ul>
+          <li><strong>严格作用</strong>：这是多项式环中消除“常数倍歧义”的唯一锚点，是后续定义 PGCD 和 PPCM 唯一性的基石。</li>
+        </ul>
+        <ul>
+          <li><strong>核心法则：次数运算性质（Propriétés du degré）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>乘法规律</strong>：$\deg(PQ) = \deg P + \deg Q$。</li>
+        </ul>
+        <ul>
+          <li><strong>加法规律</strong>：$\deg(P+Q) \le \max(\deg P, \deg Q)$。（注意：当最高次项抵消时，严格取小于号）。</li>
+          <li>复合乘法规律：$\text{si } deg(Q) &gt;= 1, deg(P \circ Q) = deg(P) \times deg(Q)$</li>
+        </ul>
+        <ul>
+          <li><strong>命题 9：环的可逆元素（Éléments inversibles）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：在 $\mathbb{K}[X]$ 中，存在乘法逆元的多项式仅为非零常数，即 $\mathbb{K}^<em>$。$PQ = 1 \leftrightarrow P \in \mathbb{K}^</em>$</li>
+        </ul>
+        <ul>
+          <li><strong>严格作用</strong>：这解释了为什么我们不能像在有理数系里那样随意做除法，而必须引入“带余除法”。</li>
+        </ul>
+        <h4>二、映射算术与几何</h4>
+        <ol>
+          <li><strong>第一层：空间的构造与骨架 (Espaces et Bases)</strong></li>
+        </ol>
+        <p>在这个层级，多项式不再是带着因式的乘积，而是空间中的<strong>点（向量）</strong>。</p>
+        <ul>
+          <li><strong>定义：多项式向量空间 ($\mathbb{K}[X]$ comme $\mathbb{K}$-espace vectoriel)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>严格表述</strong>：集合 $\mathbb{K}[X]$ 配备多项式加法（内部运算）和标量乘法（外部运算），构成一个定义在域 $\mathbb{K}$ 上的向量空间。</li>
+        </ul>
+        <ul>
+          <li><strong>维度性质</strong>：它是一个<strong>无限维（Dimension infinie）</strong> 空间。其标准基（Base canonique）为单项式序列 $(1, X, X^2, \dots, X^n, \dots)$。</li>
+        </ul>
+        <ul>
+          <li><strong>定义：截断子空间 ($\mathbb{K}_n[X]$)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>严格表述</strong>：对于给定的 $n \in \mathbb{N}$，所有满足 $\deg(P) \le n$ 的多项式（加上零多项式）构成 $\mathbb{K}[X]$ 的一个向量子空间。</li>
+        </ul>
+        <ul>
+          <li><strong>维度定理</strong>：$\dim(\mathbb{K}_n[X]) = n + 1$。其标准基为 $(1, X, X^2, \dots, X^n)$。</li>
+        </ul>
+        <ul>
+          <li><strong>一针见血的批判</strong>：很多学生会忘记常数项 $1$，错误地以为维度是 $n$。零次项的存在使得多项式空间的维度永远比它的最高次数多 1，这是进行任何基底计数时绝不能错的底线。</li>
+        </ul>
+        <ol>
+          <li><strong>第二层：维度的基石 —— 阶梯次数定理 (Degrés Échelonnés)</strong></li>
+        </ol>
+        <p>这是多项式线性代数中最具杀伤力的结构定理，它直接决定了你能否合法地进行多项式变形。</p>
+        <ul>
+          <li><strong>定理：阶梯次数多项式族 (Famille de polynômes de degrés échelonnés)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>严格表述</strong>：设 $(P_0, P_1, \dots, P_n)$ 是一个多项式族。如果对于所有的 $k \in \{0, \dots, n\}$，都严格满足 $\deg(P_k) = k$，那么这个多项式族必然是<strong>线性无关的（Système libre）</strong>。更进一步地，如果一个多项式族中系数两两相异，那么它也是线性无关的。</li>
+        </ul>
+        <ul>
+          <li><strong>推论：子空间的基 (Base de $\mathbb{K}_n[X]$)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：由于上述族包含 $n+1$ 个线性无关的向量，且 $\dim(\mathbb{K}_n[X]) = n + 1$，根据维数定理，它必然构成 $\mathbb{K}_n[X]$ 的一组<strong>基（Base）</strong>。</li>
+        </ul>
+        <ul>
+          <li><strong>专家级洞察</strong>：这就是为什么你可以放心地将任意多项式按 $(X-a)^k$ 的形式展开，或者用牛顿插值多项式 $X(X-1)(X-2)\dots$ 来表示目标多项式。因为它们都满足“次数阶梯递增”的严苛条件，因而在数学上构成了合法的坐标系。</li>
+        </ul>
+        <ol>
+          <li><strong>第三层：算子的降维打击 —— 导数与线性映射 (Endomorphismes)</strong></li>
+        </ol>
+        <p>当我们将多项式看作向量时，求导和取余数就不再是机械的代数符号推导，而是空间中的<strong>线性变换（Application linéaire）</strong>。</p>
+        <ul>
+          <li><strong>性质：求导算子的线性与核 (L&#x27;opérateur de dérivation $D$)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>严格表述</strong>：映射 $D : P \mapsto P&#x27;$ 是 $\mathbb{K}[X]$ 上的一个自同态（Endomorphisme）。</li>
+        </ul>
+        <ul>
+          <li><strong>核空间（Noyau）</strong>：$\ker(D) = \mathbb{K}_0[X]$ （即只有常数多项式的导数为零向量）。</li>
+        </ul>
+        <ul>
+          <li><strong>像空间（Image）</strong>：$\text{Im}(D) = \mathbb{K}[X]$。</li>
+        </ul>
+        <ul>
+          <li><strong>定理：带余除法映射 (La projection de la division euclidienne)</strong></li>
+        </ul>
+        <ul>
+          <li>_(正如 Exercice 3 所证明的)_ 映射 $P \mapsto R_P$ （除以 $A$ 的余数）是一个<strong>投影算子（Projecteur）</strong>。</li>
+        </ul>
+        <ul>
+          <li><strong>直和分解</strong>：$\mathbb{K}[X] = A\mathbb{K}[X] \oplus \mathbb{K}_{d-1}[X]$。</li>
+        </ul>
+        <ul>
+          <li><strong>本质揭秘</strong>：任何多项式向量都可以被唯一地拆解为两个正交方向的向量之和：一个是能被 $A$ 整除的废物方向（被投影抹零），另一个是真正携带余数信息的低维有效方向。</li>
+        </ul>
+        <ol>
+          <li><strong>第四层：坐标变换的终极公式 —— 泰勒展开 (Formule de Taylor)</strong></li>
+        </ol>
+        <p>这是算术与线性代数完美交汇的巅峰。</p>
+        <ul>
+          <li><strong>定理：多项式的泰勒公式 (Formule de Taylor pour les polynômes)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>严格表述</strong>：对于任意 $P \in \mathbb{K}_n[X]$ 和任意 $a \in \mathbb{K}$，存在唯一的展开式：</li>
+        </ul>
+        <p>$$P(X) = \sum_{k=0}^{n} \frac{P^{(k)}(a)}{k!} (X-a)^k$$</p>
+        <ul>
+          <li><strong>线性代数视角的重新翻译</strong>：</li>
+        </ul>
+        <ul>
+          <li>根据阶梯次数定理，族 $\mathcal{B}&#x27; = (1, (X-a), (X-a)^2, \dots, (X-a)^n)$ 是 $\mathbb{K}_n[X]$ 的一组新基。</li>
+        </ul>
+        <ul>
+          <li>泰勒公式根本不是什么神秘的微积分定理，它仅仅是给出了向量 $P$ 在这组新基 $\mathcal{B}&#x27;$ 下的<strong>坐标（Coordonnées）</strong>。它的坐标分量恰好是 $\frac{P^{(k)}(a)}{k!}$。</li>
+        </ul>
+        <h4>三、 结构层：整除奠基 - 从“关系”到“集合”</h4>
+        <p>当余数 $R=0$ 时，我们从“计算”进入了“代数结构”的研究，即整除与理想。</p>
+        <ul>
+          <li><strong>定义：整除（Divisibilité）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：$B|A \iff \exists Q \in \mathbb{K}[X], A = BQ$。</li>
+          <li>A是B的倍数 multiple，B是A的因子diviseur</li>
+        </ul>
+        <ul>
+          <li><strong>A|0</strong></li>
+          <li><strong>0|A -&gt; A=0</strong></li>
+          <li><strong>A|A</strong></li>
+          <li><strong>A|B et B|C -&gt; A|C</strong></li>
+        </ul>
+        <ul>
+          <li><strong>命题 15：整除的线性性质（Linéarité）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：若 $A|B$ 且 $A|C$，则对于任意多项式 $U, V \in \mathbb{K}[X]$，有 $A | (UB + VC)$。</li>
+        </ul>
+        <ul>
+          <li><strong>严格作用</strong>：这是辗转相除法和贝祖定理在逻辑上能够成立的底层防线。</li>
+        </ul>
+        <ul>
+          <li><strong>命题 16 &amp; 18：相关多项式与因子集（Polynômes associés et Diviseurs）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：$A$ 与 $B$ 互相整除 $\iff \exists \lambda \in \mathbb{K}^*, A = \lambda B \iff$ 它们的因子集合完全相等（$\mathcal{D}(A) = \mathcal{D}(B)$）。</li>
+        </ul>
+        <ul>
+          <li><strong>命题 17：整除与理想的集合转化</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：$A|B \iff B\mathbb{K}[X] \subset A\mathbb{K}[X]$。</li>
+        </ul>
+        <ul>
+          <li><strong>严格作用</strong>：倍数集合越大，其生成元（多项式本身）在整除链条上的地位越低。这种包含关系的“倒置”是抽象代数的核心视角。</li>
+        </ul>
+        <h4>四、 运算层：欧几里得除法 - 多项式的“发动机”</h4>
+        <p>度量和基础运算结构建立后，算术运算（特别是除法）成为推动理论发展的核心引擎。</p>
+        <ul>
+          <li><strong>欧几里得除法（Division Euclidienne）</strong>：这是整个多项式算术的<strong>绝对核心与唯一引擎</strong>。</li>
+        </ul>
+        <ul>
+          <li>公式：$A = BQ + R$，约束条件：$\deg(R) &lt; \deg(B)$。</li>
+        </ul>
+        <ul>
+          <li><strong>专家视角</strong>：带余除法的本质是 <strong>“强制降维”</strong>。高次多项式难以处理，我们就通过不断减去 $B$ 的倍数，强行把问题压缩到一个次数小于 $B$ 的余数 $R$ 上（例如计算矩阵的 $n$ 次幂或积分化简）。</li>
+        </ul>
+        <ul>
+          <li>只要给定 $A$ 和非零多项式 $B$，满足上述次数约束的 $(Q, R)$ 是<strong>唯一</strong>的。这保证了后续所有基于余数 $R$ 展开的推导（如求 PGCD 或求根）具有明确的数学意义，绝无歧义。</li>
+        </ul>
+        <ul>
+          <li><strong>性质：余数定理基础</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：多项式 $P \in \mathbb{K}[X]$ 除以一次式 $(X-a)$ 的余数是一个常数，且恰好等于 $P(a)$。</li>
+        </ul>
+        <ul>
+          <li><strong>严格作用</strong>：这是连接“代数除法”与“函数求值”的桥梁，直接导出了“因式定理”（若 $P(a)=0$，则 $(X-a)|P$）。</li>
+        </ul>
+        <h4>五、 巅峰层：最大公因式-最小公倍式-贝祖定理-算术的“三驾马车”</h4>
+        <p>面对两个毫无关联的多项式 $A$ 和 $B$，如何建立它们之间的血缘关系？利用前三层搭建的工具，我们最终处理两个独立多项式之间的代数关联。这就需要 PGCD、PPCM 和 Bézout。</p>
+        <ul>
+          <li><strong>定义 13：最大公因式（PGCD）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>严格定义</strong>：$\mathcal{D}(A) \cap \mathcal{D}(B)$ 中次数最大的<strong>唯一首一多项式</strong>。满足：D|A et D|B, 所有AB的公因式整除D, D首一。</li>
+        </ul>
+        <ul>
+          <li><strong>引理 2：辗转相除法的降维核心</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：若 $A = BQ + R$，则 $\mathcal{D}(A) \cap \mathcal{D}(B) = \mathcal{D}(B) \cap \mathcal{D}(R)$，因此 $PGCD(A, B) = PGCD(B, R)$。</li>
+        </ul>
+        <ul>
+          <li><strong>严格作用</strong>：保证了在算法迭代过程中，无论多项式怎么变小，它们的核心公因子血脉永不丢失。</li>
+        </ul>
+        <ul>
+          <li>互素：<strong>premier 等价于 PGCD(A, B) = 1</strong></li>
+        </ul>
+        <ul>
+          <li><strong>命题 21：贝祖定理（Identité de Bézout）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：若 $D = PGCD(A, B)$，则 $\exists U, V \in \mathbb{K}[X]$，使得 $AU + BV = D$。</li>
+        </ul>
+        <ul>
+          <li><strong>推论（互质）</strong>：$A$ 与 $B$ 互质 $\iff \exists U, V \in \mathbb{K}[X]$，使得 $AU + BV = 1$。</li>
+        </ul>
+        <ul>
+          <li><strong>定理：高斯定理（Théorème de Gauss）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：若 $A|BC$ 且 $PGCD(A, B) = 1$，则 $A|C$。</li>
+        </ul>
+        <ul>
+          <li><strong>严格作用</strong>：利用贝祖等式消除互质项的干扰，是后续处理多项式“唯一因式分解”不可或缺的逻辑组件。</li>
+        </ul>
+        <ul>
+          <li><strong>定义 15 &amp; 命题 24：最小公倍式（PPCM）</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：$A\mathbb{K}[X] \cap B\mathbb{K}[X]$ 中次数最小的唯一首一多项式。且任何公倍数都必然被 PPCM 整除。如果M是最大公倍数，那么$A\mathbb{K}[X] \cap B\mathbb{K}[X] = M \mathbb{K}[X]$</li>
+        </ul>
+        <ul>
+          <li><strong>命题 25：PGCD 与 PPCM 的乘积公式</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内容</strong>：对于首一多项式 $A, B$，有 $AB = PGCD(A, B) \times PPCM(A, B)$。</li>
+        </ul>
+        <hr>
+        <h4>知识点串联的逻辑主线</h4>
+        <ol>
+          <li>因为有了<strong>次数（Degré）</strong>，我们才有了<strong>带余除法（Division Euclidienne）</strong>。</li>
+        </ol>
+        <ol>
+          <li>因为带余除法的余数次数严格递减，<strong>辗转相除法（Algorithme d&#x27;Euclide）</strong> 才一定能在有限步内停止。</li>
+        </ol>
+        <ol>
+          <li>因为辗转相除法一定能停止，我们才证明了 <strong>PGCD 的存在性</strong>。</li>
+        </ol>
+        <ol>
+          <li>因为我们把辗转相除法的每一步反向代入，才推导出了 <strong>贝祖定理（Bézout）</strong>。</li>
+        </ol>
+        <ol>
+          <li>因为有了贝祖定理，我们才轻易证明了 <strong>高斯定理（Gauss）</strong> 和 <strong>PPCM 与 PGCD 的乘积公式</strong>。</li>
+        </ol>
+        <blockquote><strong>一针见血的总结：</strong></blockquote>
+        <blockquote>前面所有的碎片知识，都是为了给<strong>欧几里得除法</strong>搭建舞台；而欧几里得除法的所有产出，最后都凝结在了<strong>贝祖等式</strong>之中。掌握了这两者，你也就掌握了这半个章节的咽喉。</blockquote>
+        <p>这份知识脉络是高等代数多项式理论的精华。根据你提供的讲义，我已经将所有的命题、定理和性质严密地填充到了这个框架中，为你构建一个完整的复习图谱。</p>
+        <h3>第一章后半部分</h3>
+        <ol>
+          <li><strong>【前置阶段】</strong> 利用“因式定理”将单根（$P(\alpha)=0$）转化为单次整除 $(X-\alpha)|P$。</li>
+        </ol>
+        <ol>
+          <li><strong>【第一阶段】</strong> 引入“形式导数与泰勒公式”作为探测更深层结构的解剖刀。</li>
+        </ol>
+        <ol>
+          <li><strong>【第二阶段】</strong> 利用解剖刀探测高次整除 $(X-\alpha)^m|P$，确立“重根”概念。</li>
+        </ol>
+        <ol>
+          <li><strong>【第三阶段】</strong> 通过根的穷举，定义出无法再被整除的基本粒子“不可约多项式”。</li>
+        </ol>
+        <ol>
+          <li><strong>【第四阶段】</strong> 在实数域与复数域中，对所有多项式进行彻底的“终极因式分解”。</li>
+        </ol>
+        <h4>前置阶段：多项式函数与单根理论（Fonctions polynomiales et racines）</h4>
+        <p>这一阶段的核心使命是：<strong>建立“形式符号（Polynôme）”与“数值映射（Fonction）”之间的桥梁，并确立根的最基础代数判定法则。</strong></p>
+        <h5>1. 形式多项式与多项式函数的界限</h5>
+        <ul>
+          <li><strong>定义（多项式函数 / Fonction polynomiale）</strong>：</li>
+        </ul>
+        <p>对于任意形式多项式 $P = \sum a_k X^k \in \mathbb{K}[X]$，我们定义其对应的多项式函数 $\tilde{P} : \mathbb{K} \to \mathbb{K}$ 为一个具体的映射，即将标量 $x \in \mathbb{K}$ 映射为标量值 $\tilde{P}(x) = \sum a_k x^k$。</p>
+        <p>_(注：在代数中，$P$ 是无限维向量空间中的一个抽象向量，而 $\tilde{P}$ 是一个具体的函数。)_</p>
+        <ul>
+          <li><strong>Proposition（多项式与函数的同一性）</strong>：</li>
+        </ul>
+        <p>在一个包含无限个元素的域（如 $\mathbb{R}$ 或 $\mathbb{C}$）中，形式多项式与多项式函数是绝对一一对应的。即：</p>
+        <p>两个多项式在形式上相等（$P = Q$） <strong>当且仅当</strong> 它们作为函数在所有点上的取值相等（$\forall x \in \mathbb{K}, P(x) = Q(x)$）。</p>
+        <p>_(专家的底线警告：如果在包含有限个元素的有限域中，例如 $\mathbb{Z}/2\mathbb{Z}$，多项式 $P=X^2+X$ 不是零多项式，但代入 0 和 1 后其函数值全为 0，这就打破了同一性。)</p>
+        <p>线性、满射、$\phi (P.Q) = \phi (P).\phi (Q)$</p>
+        <h5>2. 根的绝对代数定义与降维因子</h5>
+        <ul>
+          <li><strong>定义（根 / Racine）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$ 且 $\alpha \in \mathbb{K}$。我们称 $\alpha$ 是多项式 $P$ 的一个根，当且仅当 $P(\alpha) = 0$。</p>
+        <p><strong>找根需要确定在哪个空间。</strong></p>
+        <ul>
+          <li><strong>Proposition（因式定理 / Caractérisation par la divisibilité）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$ 且 $\alpha \in \mathbb{K}$。</p>
+        <p>$\alpha$ 是 $P$ 的根 $\iff$ 一次多项式 $(X - \alpha)$ 整除 $P$ （即 $(X - \alpha) | P$）。</p>
+        <p>_(这是整个代数理论中最伟大的降维桥梁，它将“代入求值等于0”的算术现象，等价转化为了“剥离出一次因式”的代数结构。)_</p>
+        <ul>
+          <li><strong>Corollaire（相异根的乘积整除）</strong>：</li>
+        </ul>
+        <p>设 $\alpha_1, \alpha_2, \dots, \alpha_r$ 是多项式 $P$ 的 $r$ 个<strong>互不相同</strong>的根。那么它们的连乘积必定整除 $P$：</p>
+        <h5>3. 根的数量与物理极限（重根理论的先导）</h5>
+        <ul>
+          <li><strong>Proposition（根的数量上限 / Majoration du nombre de racines）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$ 是一个<strong>非零</strong>多项式。</p>
+        <p>$P$ 在域 $\mathbb{K}$ 中所拥有的相异根的数量，绝对不可能超过它的次数 $\deg(P)$。</p>
+        <ul>
+          <li><strong>Théorème（多项式恒等定理 / Théorème d&#x27;identification）</strong>：</li>
+        </ul>
+        <p>设 $P, Q \in \mathbb{K}_n[X]$ 是两个次数不超过 $n$ 的多项式。</p>
+        <p>如果在 $\mathbb{K}$ 中存在<strong>至少 $n+1$ 个</strong>互不相同的点 $\alpha_i$，使得在这 $n+1$ 个点上都有 $P(\alpha_i) = Q(\alpha_i)$，那么这两个多项式必定在代数上绝对相等，即 $P = Q$。</p>
+        <p>_(这也等价于：如果一个次数 $\le n$ 的多项式拥有超过 $n$ 个根，那它只能是零多项式 $P=0$。)_</p>
+        <ul>
+          <li><strong>Corollaire（无限根的零化）</strong>：</li>
+        </ul>
+        <p>如果一个多项式 $P$ 拥有无限多个根，那么 $P$ 必然是零多项式（$P = 0$）。</p>
+        <p>**我们可以通过证明 $n &gt; deg P$ 来证明多项式为0.</p>
+        <p>这一部分的绝对使命是：<strong>在不使用任何微积分和导数工具的前提下，仅利用多项式环的整除理论，严格定义重根的边界。</strong></p>
+        <h5>4. 重根的绝对定义与代数刻画</h5>
+        <ul>
+          <li><strong>Définition（重根的严格整除定义）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$ 为非零多项式，$\alpha \in \mathbb{K}$ 且 $m \in \mathbb{N}^*$。</p>
+        <p>我们称 $\alpha$ 是多项式 $P$ 的 <strong>$m$ 重根 (racine de multiplicité $m$)</strong>，当且仅当满足物理极限的夹逼条件：</p>
+        <p>$$(X - \alpha)^m \ | \ P \quad \text{且} \quad (X - \alpha)^{m+1} \nmid P$$</p>
+        <p>_(专家的底线：它必须包含 $m$ 个质因式 $(X-\alpha)$，且绝不能包含第 $m+1$ 个。)_</p>
+        <ul>
+          <li><strong>Proposition（重根的代数结构等价 / Caractérisation algébrique）</strong>：</li>
+        </ul>
+        <p>$\alpha$ 是 $P$ 的 $m$ 重根 $\iff$ 必然存在一个多项式 $Q \in \mathbb{K}[X]$ 使得：</p>
+        <p>$$P(X) = (X - \alpha)^m Q(X) \quad \text{且} \quad Q(\alpha) \neq 0$$</p>
+        <p>_(这正是后续用导数进行降阶证明时，最频繁调用的底层结构。$Q(\alpha) \neq 0$ 保证了因式 $(X-\alpha)$ 被彻底榨干。)_</p>
+        <p><strong>多个重根的全局整除性</strong></p>
+        <ul>
+          <li><strong>Proposition（多重相异根的互素拼合 / Divisibilité par des racines distinctes）</strong>：</li>
+        </ul>
+        <p>设 $\alpha_1, \alpha_2, \dots, \alpha_r$ 是多项式 $P$ 的 $r$ 个<strong>互不相同</strong>的根，且它们各自的重数分别为 $m_1, m_2, \dots, m_r$。</p>
+        <p>由于对于 $i \neq j$，多项式 $(X - \alpha_i)^{m_i}$ 与 $(X - \alpha_j)^{m_j}$ 是绝对互素的，根据高斯定理（或互素多项式的整除性质），它们的连乘积必然整除 $P$：</p>
+        <p>$$\prod_{k=1}^r (X - \alpha_k)^{m_k} \ \Big| \ P$$</p>
+        <p><strong>次数对重数的绝对压制</strong></p>
+        <ul>
+          <li><strong>Corollaire（根的重数总和的物理上限 / Majoration de la somme des multiplicités）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$ 是一个<strong>非零</strong>多项式。其所有相异根的重数之和，绝对不可能超过该多项式的次数：</p>
+        <p>$$\sum_{k=1}^r m_k \le \deg(P)$$</p>
+        <p>_(这一推论是连接前置单根理论与后续完全裂解理论（Proposition 30）的核心枢纽。当且仅当这个不等式取等号时，多项式达到“完全裂解”的终极形态。)_</p>
+        <hr>
+        <h4>第一阶段：探测工具的打造（形式导数与泰勒公式）</h4>
+        <h5><strong>1. 算子基石（形式导数的基本代数运算法则）</strong></h5>
+        <ul>
+          <li><strong>Proposition 33（形式导数的线性与乘积/复合求导法则）</strong>：</li>
+        </ul>
+        <p>设 $P, Q \in \mathbb{K}[X]$ 且 $\lambda, \mu \in \mathbb{K}$。则有：</p>
+        <ol>
+          <li>$(\lambda P + \mu Q)&#x27; = \lambda P&#x27; + \mu Q&#x27;$</li>
+        </ol>
+        <ol>
+          <li>$(PQ)&#x27; = P&#x27;Q + PQ&#x27;$</li>
+        </ol>
+        <ol>
+          <li>$(P \circ Q)&#x27; = Q&#x27; \times (P&#x27; \circ Q)$</li>
+        </ol>
+        <ul>
+          <li><strong>Proposition 36: Formule de Leibniz（莱布尼茨公式）</strong>：</li>
+        </ul>
+        <p>设 $P, Q \in \mathbb{K}[X]$。对于任意 $n \in \mathbb{N}$，有：</p>
+        <p>$$(PQ)^{(n)} = \sum_{k=0}^n \binom{n}{k} P^{(k)} Q^{(n-k)}$$</p>
+        <ul>
+          <li><strong>Proposition 34（求导的降阶性质）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$ 且 $k \in \mathbb{N}$。</p>
+        <ol>
+          <li>若 $\deg P &lt; k$，则 $P^{(k)} = 0$。</li>
+        </ol>
+        <ol>
+          <li>若 $\deg(P) \ge k$，则 $\deg P^{(k)} = \deg P - k$。</li>
+        </ol>
+        <h5><strong>2. 坐标重构（泰勒公式）</strong></h5>
+        <ul>
+          <li><strong>Proposition 37: Formule de Taylor（泰勒公式）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$ 是一个次数为 $d$ 的多项式，且 $n \in \mathbb{N}$ 满足 $d \le n$。那么对于所有的 $a \in \mathbb{K}$，有：</p>
+        <p>$$P = P(a) + P&#x27;(a)(X - a) + \frac{P&#x27;&#x27;(a)}{2!}(X - a)^2 + \dots + \frac{P^{(n)}(a)}{n!}(X - a)^n = \sum_{k=0}^n \frac{P^{(k)}(a)}{k!} (X - a)^k$$</p>
+        <hr>
+        <h4>第二阶段：结构与数值的桥梁（重根理论）</h4>
+        <h5><strong>1. 降维等价（核心定理）</strong></h5>
+        <ul>
+          <li><strong>Proposition 38（高次整除与导数求值的等价）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$, $a \in \mathbb{K}$ 且 $r \in \mathbb{N}^*$。以下命题等价：</p>
+        <ol>
+          <li>$(X - a)^r | P$</li>
+        </ol>
+        <ol>
+          <li>$P(a) = P&#x27;(a) = \dots = P^{(r-1)}(a) = 0$</li>
+        </ol>
+        <ul>
+          <li><strong>Proposition 39: Caractérisation à l&#x27;aide des dérivées（重根的导数特征刻画）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{K}[X]$, $\alpha \in \mathbb{K}$ 且 $m \in \mathbb{N}$。以下命题等价：</p>
+        <ul>
+          <li>$\alpha$ 是重数为 $m$ 的根（racine de multiplicité $m$）。</li>
+        </ul>
+        <ul>
+          <li>$\forall i \in [[0, m-1]], \ P^{(i)}(\alpha) = 0 \quad \text{且} \quad P^{(m)}(\alpha) \neq 0$</li>
+        </ul>
+        <h5><strong>2. 导数的物理意义（重数降阶与完全裂解）</strong></h5>
+        <ul>
+          <li><strong>Corollaire 7（导数对重数的削减）</strong>：</li>
+        </ul>
+        <p>如果 $\alpha$ 是 $P$ 的 $m$ 重根，那么 $\alpha$ 必然是导数 $P&#x27;$ 的 $m-1$ 重根。</p>
+        <ul>
+          <li><strong>Proposition 30（完全裂解的次数刻画）</strong>：</li>
+        </ul>
+        <p>设非零多项式 $P \in \mathbb{K}[X]$。$P$ 是完全裂解的（scindé）当且仅当 $\deg P = \sum_{k=1}^r m_k$，其中 $m_k$ 是 $P$ 各个根的重数。</p>
+        <ul>
+          <li><strong>Proposition 31: Relations coefficients-racines（系数与根的关系 / 韦达定理）</strong>：</li>
+        </ul>
+        <p>设 $P = \sum_{k=0}^n a_k X^k$ 是一个 $n$ 次完全裂解多项式，其根为 $\alpha_1, \dots, \alpha_n$（按重数计）。则有：</p>
+        <p>$$\frac{a_{n-1}}{a_n} = -(\alpha_1 + \dots + \alpha_n) \quad \text{且} \quad \frac{a_0}{a_n} = (-1)^n(\alpha_1 \times \dots \times \alpha_n)$$</p>
+        <hr>
+        <h4>第三阶段：代数世界的“素数”（不可约多项式与互素）</h4>
+        <h5><strong>1. 不可约多项式（Irréductible）</strong></h5>
+        <ul>
+          <li><strong>Proposition 40</strong>：</li>
+        </ul>
+        <p>$\mathbb{K}[X]$ 中所有次数为 $1$ 的多项式都是不可约的（Tout polynôme de degré 1 dans $\mathbb{K}[X]$ est irréductible）。</p>
+        <h5><strong>2. 互素与根的排斥</strong></h5>
+        <ul>
+          <li><strong>Proposition 41</strong>：</li>
+        </ul>
+        <p>设 $P, Q \in \mathbb{K}[X]$ 是两个互素的多项式（premiers entre eux）。那么 $P$ 和 $Q$ 没有任何公共根（n&#x27;ont aucune racine commune）。</p>
+        <hr>
+        <h4>第四阶段：物理图谱的终极收网（$\mathbb{C}[X]$ 与 $\mathbb{R}[X]$ 的因式分解）</h4>
+        <h5><strong>1. 复数域 $\mathbb{C}[X]$ 的绝对统治</strong></h5>
+        <ul>
+          <li><strong>Théorème 5</strong>：</li>
+        </ul>
+        <ol>
+          <li>$\mathbb{C}[X]$ 中的不可约多项式<strong>仅仅</strong>是那些次数为 $1$ 的多项式（Les irréductibles de $\mathbb{C}[X]$ sont exactement les polynômes de degré 1）。</li>
+        </ol>
+        <ol>
+          <li>$\mathbb{C}[X]$ 中的任何非零多项式拥有的根的总数（计重数）严格等于它的次数（admet autant de racines que son degré）。</li>
+        </ol>
+        <h5><strong>2. 实数域 $\mathbb{R}[X]$ 的物理极限</strong></h5>
+        <ul>
+          <li><strong>Proposition 42（共轭根定理）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{R}[X]$。如果 $\alpha$ 是 $P$ 的一个复数根，那么它的共轭复数 $\overline{\alpha}$ 也必然是它的根。</p>
+        <ul>
+          <li><strong>Proposition 43（实数域不可约多项式的穷举）</strong>：</li>
+        </ul>
+        <p>$\mathbb{R}[X]$ 中的不可约多项式只有以下两类：</p>
+        <ul>
+          <li>次数为 $1$ 的多项式。</li>
+        </ul>
+        <ul>
+          <li>次数为 $2$ 且判别式为负（discriminant négatif）的多项式。</li>
+        </ul>
+        <ul>
+          <li><strong>Proposition 44（$\mathbb{R}[X]$ 中的绝对因式分解定理）</strong>：</li>
+        </ul>
+        <p>设 $P \in \mathbb{R}[X]$。存在自然数 $r, s \in \mathbb{N}$，标量 $\lambda \in \mathbb{R}$，实根 $\alpha_1, \dots, \alpha_r \in \mathbb{R}$ 以及实系数对 $(b_1, c_1), \dots, (b_s, c_s) \in \mathbb{R}^2$ 使得：</p>
+        <p>$$P = \lambda \prod_{k=1}^r (X - \alpha_k)^{m_k} \prod_{l=1}^s (X^2 + b_l X + c_l)^{n_l}$$</p>
+        <p>这就是 $P$ 在 $\mathbb{R}[X]$ 中的不可约因式分解。</p>
+        <ul>
+          <li><strong>在 $\mathbb{R}[X]$ 中分解的标准操作方法</strong>：</li>
+        </ul>
+        <ol>
+          <li>首先在 $\mathbb{C}[X]$ 中进行完全因式分解。</li>
+        </ol>
+        <ol>
+          <li>将共轭的复数根两两合并配对（regroupe les racines complexes conjuguées）。</li>
+        </ol>
       </article>
     </main>
   </body>
