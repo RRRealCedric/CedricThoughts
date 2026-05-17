@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mac - Server - GitHub 工程工作流 | Cedric Notes</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  </head>
+  <body class="note-page">
+    <main class="note-main">
+      <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
+      <header class="note-header">
+        <p class="note-meta">Engineering Workflow</p>
+        <h1>Mac 本地开发 - 服务器测试 - GitHub 协作</h1>
+        <p class="note-lede">本地 Mac 是开发工作台，GitHub 是代码事实源，服务器或 HPC 是实验与验证环境。</p>
+      </header>
+      <article class="note-content">
+        <h2>核心原则</h2>
+        <p>AI coding agent 适合在本地参与阅读、重构、测试生成和提交；服务器适合承担 GPU 训练、大规模测试、benchmark 与复现实验；GitHub 负责版本、协作、PR 和审查。</p>
+        <h2>推荐闭环</h2>
+        <pre><code>本地开发 → 本地测试 → push 到个人分支
+→ 服务器拉取测试 → 回传日志 → 修复 → PR 到团队 dev</code></pre>
+        <h2>角色边界</h2>
+        <ul>
+          <li>本地负责轻量开发和 AI agent 辅助编码。</li>
+          <li>GitHub 负责版本事实源、分支管理与 Pull Request。</li>
+          <li>服务器负责资源密集型测试、训练和评估。</li>
+        </ul>
+        <h2>实践意义</h2>
+        <p>这套工作流的目标是减少“代码只在某台机器上存在”的风险，让实验、日志、修复和审查形成可复盘的工程链路。</p>
+      </article>
+    </main>
+  </body>
+</html>

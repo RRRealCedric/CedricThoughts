@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>X-Talk 系统架构分析 | Cedric Notes</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  </head>
+  <body class="note-page">
+    <main class="note-main">
+      <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
+      <header class="note-header">
+        <p class="note-meta">Project Note</p>
+        <h1>X-Talk 系统架构分析</h1>
+        <p class="note-lede">X-Talk 是一个开源的全双工级联式语音对话系统框架，关注亚秒级端到端延迟、多异构组件协调，以及模型的灵活集成与热替换。</p>
+      </header>
+      <article class="note-content">
+        <h2>核心问题</h2>
+        <p>实时语音 Agent 的难点不只是调用 ASR、LLM 和 TTS，而是把多个异步组件组织成稳定、低延迟、可观察、可替换的系统。</p>
+        <h2>架构概要</h2>
+        <p>X-Talk 采用分层事件驱动架构：浏览器前端负责语音采集与播放，EventBus 负责事件分发，Managers 负责 ASR、LLM、TTS、检索、说话人识别、延迟监控等模块编排，Agent 层负责工具调用与生成策略，Models 层封装具体模型接口。</p>
+        <div class="note-grid">
+          <section class="note-tile"><strong>Frontend Layer</strong><p>Web UI、Client VAD、音频采集与播放。</p></section>
+          <section class="note-tile"><strong>Event Center</strong><p>InputGateway、OutputGateway 与 EventBus 解耦内部模块。</p></section>
+          <section class="note-tile"><strong>Managers</strong><p>ASRManager、LLMAgentManager、TTSManager 等负责异步编排。</p></section>
+          <section class="note-tile"><strong>Agent & Models</strong><p>DefaultAgent 负责推理与工具，模型接口负责可替换实现。</p></section>
+        </div>
+        <h2>设计价值</h2>
+        <ul>
+          <li>事件驱动让各模块之间保持松耦合。</li>
+          <li>模型接口让 ASR、TTS、LLM、Embedding 等能力可以替换。</li>
+          <li>Manager 层让复杂流程具备可调试、可观测、可扩展的边界。</li>
+          <li>PipelineContext 为记忆、检索、字幕、思维状态等上下文注入提供统一位置。</li>
+        </ul>
+        <h2>下一步</h2>
+        <p>长期方向是把 X-Talk 从实时语音系统推进为具备长期记忆、个人偏好、项目连续性和自我复盘能力的协作型 Agent。</p>
+      </article>
+    </main>
+  </body>
+</html>
