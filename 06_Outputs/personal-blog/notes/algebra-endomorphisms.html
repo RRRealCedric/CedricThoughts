@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Algèbre Ch3 Réduction des endomorphismes | Cedric Notes</title>
+    <meta name="description" content="特征值、特征向量、可对角化与 endomorphismes 的化简。">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body class="note-page">
+    <main class="note-main">
+      <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
+      <header class="note-header">
+        <p class="note-meta">Learning</p>
+        <h1>Algèbre Ch3 Réduction des endomorphismes</h1>
+        <p class="note-lede">特征值、特征向量、可对角化与 endomorphismes 的化简。</p>
+      </header>
+      <article class="note-content">
+        <p>本章的核心目标非常明确：<strong>寻找空间中的特定基底，使得线性变换（自同态）在该基底下的矩阵表示尽可能的简单（即对角矩阵）</strong>。为了达成这个几何目标，整个章节经历了几何定义 $\rightarrow$ 代数工具 $\rightarrow$ 维度分析 $\rightarrow$ 判定准则的严密逻辑推演。</p>
+        <p>以下是串联全章所有定义与性质的知识脉络图景：</p>
+        <hr>
+        <h4>第一阶段：基石构建 —— 特征元素（几何视角的引入）</h4>
+        <p>要让矩阵对角化，本质上是寻找空间中在映射下方向保持不变的向量（即稳定直线）。</p>
+        <p><strong>1. 核心定义：</strong></p>
+        <ul>
+          <li><strong>特征值 (Valeur propre, $\lambda$) &amp; 特征向量 (Vecteur propre, $x$)</strong>：若存在<strong>非零</strong>向量 $x$ 使得 $u(x)=\lambda x$（或 $AX=\lambda X$），则 $\lambda$ 为特征值，$x$ 为特征向量。</li>
+        </ul>
+        <ul>
+          <li><strong>频谱 (Spectre, $Sp(u)$)</strong>：所有特征值的集合。</li>
+        </ul>
+        <ul>
+          <li><strong>特征子空间 (Sous-espace propre, $E_\lambda$)</strong>：对应于同一特征值 $\lambda$ 的所有特征向量加上零向量构成的子空间，即 $E_\lambda = \ker(u-\lambda \text{Id}_E)$。</li>
+        </ul>
+        <p><strong>2. 重要性质与定理（独立性与正交性隐喻）：</strong></p>
+        <ul>
+          <li><strong>几何意义</strong>：向量直线 $D=\text{Vect}(x)$ 是稳定直线，当且仅当 $x$ 是特征向量（命题1）。</li>
+        </ul>
+        <ul>
+          <li><strong>交换自同态的稳定性</strong>：若 $u \circ v = v \circ u$，则 $u$ 的特征子空间在 $v$ 下稳定（命题2）。</li>
+        </ul>
+        <ul>
+          <li><strong>特征子空间的直和定理</strong>（全章最核心的几何基石）：对应于两两不同特征值的特征子空间构成<strong>直和</strong>（命题4）。</li>
+        </ul>
+        <ul>
+          <li><strong>线性无关推论</strong>：不同特征值对应的特征向量严格<strong>线性无关</strong>（推论1）。</li>
+        </ul>
+        <ul>
+          <li><strong>数量上限</strong>：在 $n$ 维空间中，不同特征值的数量 $|Sp(u)| \le n$；特征子空间的维度之和 $\sum \dim E_\lambda \le n$（推论2, 3）。</li>
+        </ul>
+        <hr>
+        <h4>第二阶段：降维打击 —— 特征多项式（代数工具的引入）</h4>
+        <p>寻找 $AX=\lambda X$ 中的未知数 $\lambda$ 和 $X$ 是一个困难的耦合问题。数学家通过行列式引入特征多项式，消去了未知向量 $X$，将几何问题转化为纯代数求根问题。</p>
+        <p><strong>1. 核心定义：</strong></p>
+        <ul>
+          <li><strong>特征多项式 (Polynôme caractéristique, $\chi_A$ 或 $\chi_u$)</strong>：$\chi_A(\lambda) = \det(\lambda I_n - A)$ 或 $\chi_u(\lambda) = \det(\lambda \text{Id}_E - u)$（定义5, 6）。</li>
+        </ul>
+        <p><strong>2. 重要性质与定理（代数与几何的桥梁）：</strong></p>
+        <ul>
+          <li><strong>等价判定</strong>：$\lambda$ 是特征值 $\iff$ $\lambda$ 是 $\chi_A$ 的根（命题10, 15）。</li>
+        </ul>
+        <ul>
+          <li><strong>不变性</strong>：相似矩阵（即同一自同态在不同基下的表示）具有<strong>相同</strong>的特征多项式（命题13）；矩阵与其转置的特征多项式相同（命题11）。</li>
+        </ul>
+        <ul>
+          <li><strong>多项式结构（韦达定理的体现）</strong>：$\chi_A$ 是首一多项式。次高项系数对应迹的相反数，常数项对应行列式：$\chi_A = X^n - \text{tr}(A)X^{n-1} + \dots + (-1)^n \det(A)$（命题12, 16）。</li>
+        </ul>
+        <ul>
+          <li><strong>子空间诱导</strong>：若 $F$ 是稳定子空间，则其诱导的自同态 $u_F$ 的特征多项式整除原多项式 $\chi_u$（命题17）。</li>
+        </ul>
+        <hr>
+        <h4>第三阶段：深度剖析 —— 特征值的重数（连接代数与几何的关键）</h4>
+        <p>仅仅知道“有哪些特征值（多项式的根）”是不够的，还必须知道这些根的“厚度”。</p>
+        <p><strong>1. 核心定义：</strong></p>
+        <ul>
+          <li><strong>代数重数 (Ordre de multiplicité, $m(\lambda)$)</strong>：$\lambda$ 作为特征多项式 $\chi_u$ 的根的次数。</li>
+        </ul>
+        <p><strong>2. 重要性质与定理：</strong></p>
+        <ul>
+          <li><strong>复数域与实数域的差异</strong>：在 $\mathbb{C}$ 上，必定有 $n$ 个特征值（含重数）；在 $\mathbb{R}$ 上，最多有 $n$ 个（命题18）。</li>
+        </ul>
+        <ul>
+          <li><strong>共轭成对</strong>：实矩阵的复特征值及其代数重数、特征向量必然共轭成对（命题8, 19）。</li>
+        </ul>
+        <ul>
+          <li><strong>分裂多项式的终极公式</strong>：若 $\chi_A$ 完全分裂，则迹等于所有特征值（乘代数重数）之和，行列式等于特征值（的代数重数次方）之积（命题21）。</li>
+        </ul>
+        <ul>
+          <li><strong>全章第一核心不等式（对角化的底层限制）</strong>：对于任意特征值 $\lambda$，其<strong>几何重数（特征子空间维度）永远被压制在代数重数之下</strong>（命题20）：</li>
+        </ul>
+        <div class="math-block">\[
+        1 \le \dim \ker(u-\lambda \text{Id}_E) \le m(\lambda)
+        \]</div>
+        <hr>
+        <h4>第四阶段：终极目标 —— 对角化 (Diagonalisation)</h4>
+        <p>当所有的代数与几何工具准备就绪，我们终于可以回答本章的核心问题：什么时候能找到一组全是特征向量的基？</p>
+        <p><strong>1. 核心定义：</strong></p>
+        <ul>
+          <li><strong>可对角化</strong>：自同态 $u$ 可对角化，意味着存在一组由特征向量构成的基。矩阵 $A$ 可对角化，意味着 $A$ 相似于一个对角矩阵（定义8）。</li>
+        </ul>
+        <p><strong>2. 判定准则（递进关系）：</strong></p>
+        <ul>
+          <li><strong>充分非必要条件（极速判定）</strong>：如果 $n$ 维空间中的自同态/矩阵拥有 $n$ 个<strong>两两不同</strong>的特征值（即所有根都是单根），则必然可对角化（命题23）。</li>
+        </ul>
+        <ul>
+          <li><strong>充要条件（终极刻画）</strong>：一个自同态可对角化 $\iff$ 全空间可以被特征子空间完全分解（即 $E = \bigoplus E_\lambda$） $\iff$ 所有特征子空间的维度之和等于全空间维度 $n$（命题24）。</li>
+        </ul>
+        <p><strong>知识脉络总结语：</strong></p>
+        <p>整个第三章的逻辑链条可归结为：<strong>从空间中寻找稳定直线（特征向量）出发，利用行列式构造出特征多项式以求得稳定直线的“代数候选人”（特征值及代数重数），再反身检验这些候选人所能撑起的“几何真实空间”（特征子空间维度）。当且仅当几何真实空间的总维度没有发生“坍缩”（即 $\dim E_\lambda \equiv m(\lambda)$ 且所有根都在所在域内），代数与几何完美契合，对角化宣告成功。</strong></p>
+      </article>
+    </main>
+  </body>
+</html>

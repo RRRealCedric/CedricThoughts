@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Topology: Différenciabilité | Cedric Notes</title>
+    <meta name="description" content="多元函数连续性、可微性、方向导数与梯度。">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body class="note-page">
+    <main class="note-main">
+      <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
+      <header class="note-header">
+        <p class="note-meta">Learning</p>
+        <h1>Topology: Différenciabilité</h1>
+        <p class="note-lede">多元函数连续性、可微性、方向导数与梯度。</p>
+      </header>
+      <article class="note-content">
+        <p>这三周的课程在逻辑上经历了一次深刻的“破与立”：从依赖坐标系的<strong>偏导数</strong>（局部的、存在缺陷的观察），到抛弃坐标系的<strong>可微性</strong>（全局的、严密的线性代数映射），最后收敛到实值函数在内积空间下的几何实体——<strong>梯度与极值</strong>。</p>
+        <p>以下是严格按照数学逻辑推演的知识脉络。</p>
+        <hr>
+        <h4>第一阶段：依赖坐标系的局部视角——偏导数</h4>
+        <p>在处理多元函数时，最直观的降维方法是将其限制在特定的直线上，转化为一元函数进行研究。</p>
+        <ul>
+          <li><strong>方向限制与偏函数（Restriction et Applications partielles）：</strong> 对于定义在开集 $\Omega \subset E$ 上的函数 $f$，通过固定除 $x_i$ 外的所有变量，可以得到第 $i$ 个偏函数。在几何上，这相当于截取曲面在特定坐标平面上的曲线。</li>
+        </ul>
+        <ul>
+          <li><strong>偏导数（Dérivées partielles）：</strong> 如果上述偏函数可导，其导数即为偏导数 $\frac{\partial f}{\partial x_i}(a)$。它衡量了函数仅在第 $i$ 个基底向量方向上的变化率。</li>
+        </ul>
+        <ul>
+          <li><strong>链式法则（Règle de la chaîne）：</strong> 对于复合函数 $g \circ f$，其偏导数必须通过严格的变量追踪来计算：$\frac{\partial(g \circ f)}{\partial x_j}(a) = \sum_{k=1}^p \frac{\partial g}{\partial y_k}(f(a)) \times \frac{\partial f_k}{\partial x_j}(a)$。这要求计算时必须明辨每一层函数的自变量归属。</li>
+        </ul>
+        <ul>
+          <li><strong>高阶偏导数与施瓦茨定理（Théorème de Schwarz）：</strong> 若函数属于 $C^2$ 类（存在连续的二阶偏导数），则混合偏导数的求导顺序无关紧要，即 $\partial_i\partial_j f(x) = \partial_j\partial_i f(x)$。</li>
+        </ul>
+        <p><strong>致命缺陷：</strong> 这一阶段的理论存在根本性的撕裂。<strong>偏导数的存在甚至不能保证函数在该点连续</strong>（如讲义中 $\frac{xy}{x^2+y^2}$ 的反例）。这种十字交叉式的探测，丢失了空间对角线方向的信息。这就迫使我们必须寻找一种更全局的定义。</p>
+        <hr>
+        <h4>第二阶段：代数视角的全局重构——可微性</h4>
+        <p>为了摆脱对特定基底（坐标轴）的依赖，实现内在的（intrinsèque）函数分析，课程引入了“可微”的概念。</p>
+        <h5>1. 基础</h5>
+        <ul>
+          <li><strong>向量级无穷小（&quot;petit o&quot; vectoriel）：</strong> 定义了 $u(h) = o(h)$，即当增量向量 $h \to 0$ 时，误差项 $u(h)$ 趋近于零的速度比向量模长 $||h||$ 更快。</li>
+        </ul>
+        <ul>
+          <li><strong>可微性定义（Différentiabilité）：</strong> 函数 $f$ 在点 $a$ 可微，当且仅当存在一个<strong>线性映射（Application linéaire）</strong> $L$，使得一阶有限展开成立：</li>
+        </ul>
+        <div class="math-block">\[
+        f(a+h) = f(a) + L(h) + o(h)
+        \]</div>
+        <p>通过反证法，讲义严格证明了该线性映射如果存在，则必然唯一，并将其命名为<strong>微分（Différentielle）</strong>，记作 $df(a)$。</p>
+        <ul>
+          <li><strong>统一方向导数与偏导数：</strong></li>
+        </ul>
+        <ul>
+          <li><strong>方向导数（Dérivée selon une direction）：</strong> 函数沿任意非零向量 $u$ 的变化率，定义为一元极限 $\lim_{t\rightarrow0}\frac{f(a+tu)-f(a)}{t}$。</li>
+        </ul>
+        <ul>
+          <li>如果函数可微，那么<strong>任意方向的方向导数必然存在</strong>，且直接等于微分算子作用于该向量：$\partial_u f(a) = df(a)(u)$。</li>
+        </ul>
+        <ul>
+          <li>偏导数仅仅是微分算子作用于标准基底向量的特例：$\frac{\partial f}{\partial x_i}(a) = df(a)(e_i)$。</li>
+        </ul>
+        <ul>
+          <li>代数计算公式：$df(a)(h) = \sum_{i=1}^n h_i \frac{\partial f}{\partial x_i}(a)$。</li>
+        </ul>
+        <ul>
+          <li><strong>终极判定桥梁（$C^1$ 定理）：</strong> 为了将偏导数的易计算性与可微性的严谨性结合，确立了核心定理：<strong>如果函数的所有偏导数不仅存在，而且连续（即 $f \in C^1$），那么 $f$ 必定可微</strong>。</li>
+        </ul>
+        <h5>2. 连续性证明</h5>
+        <p>在多元微积分中，证明函数在某一点的连续性（或不连续性）需要建立严密的逻辑防御体系。由于多元空间中存在无限多种逼近某一点的路径，判定连续性的策略必须根据函数的具体解析式结构来选择。</p>
+        <p>综合课程讲义的理论框架，证明连续性的方法可以严格划分为以下四个层级：</p>
+        <p><strong>一、 通用定理法 (Théorèmes généraux)</strong></p>
+        <p>这是最优先使用的降维打击方法 。对于绝大多数在定义域内由标准初等函数构成的表达式，无需回到基础定义。</p>
+        <ul>
+          <li><strong>方法逻辑：</strong> 利用已知连续函数的线性组合（加法、数乘）、乘积、商（分母不为零时）以及复合（Composition），直接断言函数连续 。</li>
+        </ul>
+        <ul>
+          <li><strong>适用场景：</strong> 函数在某一点的局部邻域内只有一个统一的解析式，且该解析式没有分母为零或根号下为负的奇点。例如多项式函数在整个 $\mathbb{R}^n$ 上处处连续 。</li>
+        </ul>
+        <p><strong>二、 回归定义与极限放缩法 (Revenir à la définition et Majoration)</strong></p>
+        <p>当函数在某一点（通常是原点或分段函数的拼接点）导致通用定理失效时，必须老老实实回到拓扑学的绝对定义 。</p>
+        <ul>
+          <li><strong>方法逻辑：</strong> 必须证明当增量向量 $h$ 的模长趋于 0 时，函数值的增量趋于 0 。即证明：</li>
+        </ul>
+        <div class="math-block">\[
+        \lim_{||h||\to 0} f(a+h) - f(a) = 0
+        \]</div>
+        <ul>
+          <li><strong>实战手段（放缩/夹逼定理）：</strong> 在多元极限中，直接求极限往往很困难。最严密的手段是寻找一个只依赖于模长 $||h||$（或极坐标半径 $r$）的上界函数，使得：</li>
+        </ul>
+        <div class="math-block">\[
+        0 \le |f(a+h) - f(a)| \le g(||h||)
+        \]</div>
+        <p>只要当 $||h|| \to 0$ 时，一元函数 $g(||h||) \to 0$，根据夹逼定理，连续性即被严格证明。</p>
+        <p><strong>三、 微分学高级判定法 (Différentiabilité et Classe $C^1$)</strong></p>
+        <p>这是利用更强的高阶性质来“向下兼容”证明连续性。</p>
+        <ul>
+          <li><strong>方法逻辑 1（可微必连续）：</strong> 如果通过某种方式（例如一阶展开）证明了函数在点 $a$ 处是<strong>可微的（différentiable）</strong>，那么该函数在点 $a$ 必定连续 。</li>
+        </ul>
+        <ul>
+          <li><strong>方法逻辑 2（$C^1$ 定理）：</strong> 这是实战中最强大的判定武器。如果你能求出该函数的所有偏导数，并且证明<strong>这些偏导数本身都是连续函数（即函数属于 $C^1$ 类）</strong>，那么根据定理，该函数必定可微，从而必定连续 。</li>
+        </ul>
+        <ul>
+          <li><strong>严厉警告：</strong> 绝不能仅仅因为“偏导数存在”就断言函数连续。偏导数存在只代表在特定坐标轴方向上有切线，根本无法保证全局连续性 。</li>
+        </ul>
+        <p><strong>四、 证伪法：证明函数“不连续” (Montrer la non continuité)</strong></p>
+        <p>当怀疑一个函数（如 $f(x,y) = \frac{xy}{x^2+y^2}$）在奇点不连续时，防守（证明连续）是不可能的，只需转为进攻（寻找反例） 。</p>
+        <ul>
+          <li><strong>方法逻辑：</strong> 只需要找到<strong>一种特定的逼近方式</strong>，使得极限不存在，或者极限值不等于该点的函数定义值。</li>
+        </ul>
+        <ul>
+          <li><strong>方向逼近（限制法）：</strong> 寻找一个特定的非零向量 $u$，令自变量沿着直线路径 $t \mapsto a + tu$ 逼近 。如果沿着不同方向 $u$ 计算出的一元极限不同（例如沿着 $y=x$ 和 $y=2x$ 得到不同的常数），说明全局极限必然不存在，函数绝对不连续 。</li>
+        </ul>
+        <ul>
+          <li><strong>曲线逼近：</strong> 若直线逼近无法暴露出不连续性，可以构造曲线路径（如 $y = x^2$ 或 $y = x^3$）来逼近。只要找到任意一条路径导致极限发散或取值异常，连续性即被彻底摧毁。</li>
+        </ul>
+        <h5>3. 偏导数存在证明</h5>
+        <p>在多元微积分中，证明一个函数在某一点偏导数的存在性，核心在于<strong>将多元问题降维为纯粹的一元导数问题</strong>。根据函数在该点解析式的复杂程度，实战中主要采用以下三种严格的证明方法：</p>
+        <ul>
+          <li><strong>方法一：直接使用一元导数运算法则（适用于常规点）</strong></li>
+        </ul>
+        <p>如果函数在该点及其邻域内由单一的初等解析式构成（例如没有分母为零、没有分段拼接），你完全不需要回到极限定义。</p>
+        <p><strong>逻辑要求：</strong> 求第 $i$ 个变量的偏导数时，只需将其余所有变量视为常数。此时，原函数在局部退化为一个一元初等函数。</p>
+        <p><strong>实操步骤：</strong></p>
+        <p>直接对该一元函数应用标准求导法则（多项式求导、乘积法则、链式法则等）。只要按照一元微积分的定理，该函数的导数在目标点能够计算出来且分母不为零，偏导数就自然存在。</p>
+        <ul>
+          <li><strong>方法二：回到极限的绝对定义（适用于分段点或奇点）</strong></li>
+        </ul>
+        <p>当函数在目标点（通常是原点 $(0,0)$）是人工分段定义的，常规的求导法则会因为奇点失效，此时<strong>必须强行使用极限的底层定义</strong>。这是考试与证明题中最常考的手段。</p>
+        <p><strong>逻辑要求：</strong> 偏导数本质上是沿着坐标轴方向的一维方向导数。必须证明相应的差商极限存在且为一个有限的实数。</p>
+        <p><strong>实操步骤（以二元函数 $f(x,y)$ 在 $(x_0, y_0)$ 对 $x$ 的偏导为例）：</strong></p>
+        <ol>
+          <li><strong>降维：</strong> 固定 $y = y_0$ 保持不变。</li>
+        </ol>
+        <ol>
+          <li><strong>构造差商极限：</strong> 写出 $\lim_{h \to 0} \frac{f(x_0+h, y_0) - f(x_0, y_0)}{h}$。</li>
+        </ol>
+        <ol>
+          <li><strong>代入求值：</strong> 将 $f(x_0, y_0)$ 在该点的具体定义值（例如 $f(0,0)=0$）代入，并化简分子。</li>
+        </ol>
+        <ol>
+          <li><strong>审判：</strong> 独立计算这个一元极限。如果该极限存在且等于某个常数 $L$，则证明偏导数 $\frac{\partial f}{\partial x}(x_0, y_0)$ 存在，且值等于 $L$。</li>
+        </ol>
+        <p><strong>经典案例论证：</strong></p>
+        <p>讲义中反复提及的警示反例 $f(x,y) = \frac{xy}{x^2+y^2}$（非原点）且 $f(0,0)=0$。</p>
+        <p>要证明它在 $(0,0)$ 处对 $x$ 的偏导数存在，使用定义计算：</p>
+        <div class="math-block">\[
+        \lim_{h \to 0} \frac{f(h, 0) - f(0,0)}{h} = \lim_{h \to 0} \frac{\frac{h \cdot 0}{h^2+0^2} - 0}{h} = \lim_{h \to 0} \frac{0}{h} = 0
+        \]</div>
+        <p>极限存在且为 0。因此偏导数 $\frac{\partial f}{\partial x}(0,0)$ 确实存在，且等于 0。同理可证对 $y$ 的偏导数也存在。</p>
+        <ul>
+          <li><strong>方法三：利用全局可微性反推（高维向下兼容）</strong></li>
+        </ul>
+        <p>这是利用更高级别的拓扑性质来向下证明底层属性。</p>
+        <p><strong>逻辑要求：</strong> 如果函数 $f$ 在点 $a$ 是<strong>可微的（différentiable）</strong>，那么它在点 $a$ 的所有偏导数必然存在。</p>
+        <p><strong>实操步骤：</strong></p>
+        <p>如果你已经通过一阶有限展开式（即证明了存在线性映射 $L$ 使得 $f(a+h) = f(a) + L(h) + o(h)$）严密确立了函数在点 $a$ 可微，你可以直接断言其偏导数存在。此时，第 $i$ 个偏导数的值直接等于该微分算子作用于第 $i$ 个基向量的结果，即 $\frac{\partial f}{\partial x_i}(a) = L(e_i)$。</p>
+        <hr>
+        <ul>
+          <li>极其致命的逻辑警示：</li>
+        </ul>
+        <p>在多元微积分的逻辑体系中，必须认清“偏导数存在”是一个<strong>极其弱</strong>的条件。证明了偏导数存在，绝不能向下引申：</p>
+        <ol>
+          <li><strong>偏导数存在 $\nRightarrow$ 函数连续。</strong> 正如上面方法二中的例子，虽然 $(0,0)$ 处两个偏导数都存在且为 0，但只要沿着 $y=x$ 逼近，极限为 $\frac{1}{2}$，不等于 $f(0,0)=0$，函数在原点绝对不连续。</li>
+        </ol>
+        <ol>
+          <li><strong>偏导数存在 $\nRightarrow$ 函数可微。</strong></li>
+        </ol>
+        <p>在没有证明出“偏导数本身是连续函数”（即满足 $C^1$ 类条件）之前，仅仅证明出“偏导数存在”，只能说明该曲面在极其狭窄的十字交叉线上有切线，绝对不能将其作为推导任何全局几何性质或最优近似的基石。</p>
+        <h5>4. 可微性证明</h5>
+        <p>证明多元函数在某一点或某一区域内可微（différentiable），在数学逻辑上必须严格遵循既定的定理框架。根据讲义内容，证明可微性主要分为三种核心路径。选择哪种路径取决于函数的解析结构以及所考察的点是否为奇点。</p>
+        <p>以下是全面且严格的证明方法论：</p>
+        <ul>
+          <li><strong>方法一：回到绝对定义（一阶有限展开法）</strong></li>
+        </ul>
+        <p>这是最基础、最底层的证明方法。当函数在某一点的结构复杂，或者常规的求导法则失效（例如分段函数在原点的拼接处）时，必须强行使用此方法 。</p>
+        <p><strong>逻辑要求：</strong> 必须证明对于增量向量 $h \to 0$，函数的增量可以被严格拆解为一个线性映射加上一个高阶无穷小量 。 即证明存在一个线性映射 $L$，使得：</p>
+        <div class="math-block">\[
+        f(a+h) = f(a) + L(h) + o(h)
+        \]</div>
+        <p><strong>实操步骤：</strong></p>
+        <ol>
+          <li><strong>计算增量：</strong> 写出 $f(a+h) - f(a)$ 的精确表达式。</li>
+        </ol>
+        <ol>
+          <li><strong>分离线性部分：</strong> 利用代数变形（如一元泰勒展开的代入、内积展开等），从中剥离出一个关于 $h=(h_1, ..., h_n)$ 的严格线性表达式。这个部分就是候选的微分 $L(h)$ 。</li>
+        </ol>
+        <ol>
+          <li><strong>严格放缩证明误差项：</strong> 令剩余部分为 $R(h)$。必须利用范数不等式严格证明 $\lim_{||h||\to 0} \frac{||R(h)||}{||h||} = 0$，从而确立 $R(h) = o(h)$ 。 只要这三步逻辑闭环，即可断言函数可微，且 $df(a) = L$。</li>
+        </ol>
+        <ul>
+          <li><strong>方法二：利用 $C^1$ 充分条件定理（实战首选法）</strong></li>
+        </ul>
+        <p>这是绝大多数常规题目中最直接、最不易出错的方法。它利用了连续偏导数对可微性的向下兼容。</p>
+        <p><strong>逻辑要求：</strong> 定理指出：如果函数 $f$ 属于 $C^1$ 类，那么它必定可微 。</p>
+        <p><strong>实操步骤：</strong></p>
+        <ol>
+          <li><strong>计算所有偏导数：</strong> 对函数的所有变量分别求偏导数 $\frac{\partial f}{\partial x_1}, ..., \frac{\partial f}{\partial x_n}$ 。</li>
+        </ol>
+        <ol>
+          <li><strong>证明偏导数连续：</strong> 将求出的偏导数视为新的多元函数，利用多元函数连续性的定理（如初等函数的组合），证明这些偏导数在目标点或目标区域内是连续的 。 只要偏导数存在且连续，可微性即刻成立，无需再进行任何 $o(h)$ 的放缩计算 。</li>
+        </ol>
+        <ul>
+          <li><strong>方法三：利用微分的代数与拓扑性质</strong></li>
+        </ul>
+        <p>对于由已知可微函数组合而成的复杂函数，应直接利用算子性质，避免重复造轮子。</p>
+        <p><strong>逻辑要求与适用场景：</strong></p>
+        <ol>
+          <li><strong>线性组合：</strong> 若 $f$ 和 $g$ 均可微，则它们的任意线性组合 $f + \lambda g$ 必然可微 。</li>
+        </ol>
+        <ol>
+          <li><strong>常数函数：</strong> 显然可微，微分为零映射 。</li>
+        </ol>
+        <ol>
+          <li><strong>全局线性映射：</strong> 如果函数本身就是一个线性映射（如矩阵乘法、内积中的固定一端），则它在空间中处处可微，且其在任意点的微分就是它自身（$df(a) = f$） 。多项式函数由于是坐标线性映射的乘积与加和，自然在全空间可微 。</li>
+        </ol>
+        <hr>
+        <ul>
+          <li><strong>逻辑谬误批判（防错警告）</strong></li>
+        </ul>
+        <p>在论证可微性时，绝不能出现以下逻辑断层：</p>
+        <ul>
+          <li><strong>谬误 1：“因为所有偏导数都存在，所以函数可微。”</strong> 这是极其严重的错误。偏导数存在仅仅意味着函数在平行于坐标轴的十字交叉线上有切线。讲义明确指出，偏导数存在甚至连函数的连续性都无法保证，更不可能推导出全方位线性逼近的可微性 。必须附加“偏导数连续”这一条件。</li>
+        </ul>
+        <ul>
+          <li><strong>谬误 2：“因为函数在所有方向上的方向导数都存在，所以函数可微。”</strong></li>
+        </ul>
+        <p>同样错误。方向导数只是一维射线上的探测，无数条一维射线的集合并不能等价于一个二维或多维的平滑切面。</p>
+        <ul>
+          <li><strong>谬误 3：“对于矩阵或向量空间，把所有元素的导数求出来就算证明了可微。”</strong> 在非标准基底或抽象空间中，必须回到线性映射的本质（如迹、内积等）去寻找微分算子，生搬硬套坐标偏导数会导致维度和结构的混乱 。</li>
+        </ul>
+        <hr>
+        <h4>第三阶段：几何实体的具象化——梯度与寻优</h4>
+        <p>将目标锁定在<strong>实值函数</strong>（映射到 $\mathbb{R}$ 的标量场）以及<strong>欧几里得空间</strong>（配备内积）上，微分算子被赋予了真正的几何形体。</p>
+        <ul>
+          <li><strong>梯度的诞生（Gradient）：</strong> 由于微分 $df(a)$ 是一个线性形式，根据里斯表示定理，必然存在唯一的向量 $\nabla f(a)$，使得微分运算等效于内积运算：</li>
+        </ul>
+        <div class="math-block">\[
+        df(a)(h) = \langle \nabla f(a) | h \rangle
+        \]</div>
+        <p>在标准正交基下，梯度的坐标正是各个偏导数。</p>
+        <ul>
+          <li><strong>最大变化率的几何诠释：</strong> 结合方向导数与梯度，有 $\partial_u f(a) = \langle \nabla f(a) | u \rangle$。利用柯西-施瓦茨不等式（Inégalité de Cauchy-Schwarz），当单位向量 $u$ 与梯度 $\nabla f(a)$ 同向时，内积取最大值。</li>
+        </ul>
+        <ul>
+          <li><strong>核心结论：</strong> 梯度向量给出了函数增长最快的方向，其模长 $||\nabla f(a)||$ 就是这个最大增长率。</li>
+        </ul>
+        <ul>
+          <li><strong>局部极值与临界点（Extremums et points critiques）：</strong></li>
+          <li>对于<strong>局部极值（极大/极小）</strong>，不仅要求函数值在邻域内维持不等式关系 $f(x) \le f(x_0)$，还要求该极值点 $x_0$ 必须处于定义域的<strong>内部（Intérieur，即 $\mathcal{D}^\circ$）</strong>，这被称为无约束极值。</li>
+        </ul>
+        <ul>
+          <li><strong>一阶必要条件：</strong> 若 $C^1$ 类函数在定义域内部点取得局部极值，则该点必为<strong>临界点</strong>（$\nabla f(x_0) = 0$）。</li>
+        </ul>
+        <ul>
+          <li><strong>逻辑陷阱（鞍点）：</strong> 梯度为零只是必要条件。如 $f(x,y)=xy$ 在原点梯度为零，但沿不同方向增量符号相反，属于鞍点（Point col）而非极值。</li>
+        </ul>
+        <ul>
+          <li><strong>判别方法论：</strong> 先通过 $\nabla f(x) = 0$ 筛选出所有临界点，随后必须通过强行展开 $\Delta f = f(x_0+h) - f(x_0)$ 进行局部增量符号分析（Étude du signe），符号恒定的才是极值，符号交替的即为鞍点。</li>
+        </ul>
+        <hr>
+        <h4>知识脉络与逻辑蕴含图谱</h4>
+        <p>将这三周的理论提炼，可以得到一条不可逆的严密逻辑蕴含链条：</p>
+        <div class="math-block">\[
+        \text{函数 } f \text{ 属于 } C^1 \text{ 类 （偏导数存在且连续）}
+        \]</div>
+        <div class="math-block">\[
+        \Downarrow \quad \text{(第16页核心定理)}
+        \]</div>
+        <div class="math-block">\[
+        \text{函数 } f \text{ 在该点可微 （存在最优线性映射 } df(a) \text{）}
+        \]</div>
+        <div class="math-block">\[
+        \Downarrow \quad \text{(等价于存在唯一的梯度向量 } \nabla f(a) \text{，使得 } df(a)(h) = \langle \nabla f(a) | h \rangle \text{）}
+        \]</div>
+        <div class="math-block">\[
+        \text{函数 } f \text{ 在该点必然连续，且沿任意方向 } u \text{ 的方向导数均存在}
+        \]</div>
+        <div class="math-block">\[
+        \Downarrow
+        \]</div>
+        <div class="math-block">\[
+        \text{函数 } f \text{ 在该点的所有偏导数均存在}
+        \]</div>
+        <p>这套知识体系从“多维降为一维”（偏导数），到“多维一体化”（可微性），再到“寻找最优化路径”（梯度与极值），构成了多元微分学完整的第一层级数学建模框架。</p>
+      </article>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Topology: Normes, EVN, Continuité | Cedric Notes</title>
+    <meta name="description" content="赋范空间、范数等价、收敛、连续性与紧致性。">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body class="note-page">
+    <main class="note-main">
+      <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
+      <header class="note-header">
+        <p class="note-meta">Learning</p>
+        <h1>Topology: Normes, EVN, Continuité</h1>
+        <p class="note-lede">赋范空间、范数等价、收敛、连续性与紧致性。</p>
+      </header>
+      <article class="note-content">
+        <p>这部分课程完成了从代数结构（向量空间）到分析结构（拓扑与极限）的根本性跨越。建立笔记框架时，必须严格摒弃实数轴上的几何直觉，将核心逻辑建立在<strong>范数公理</strong>与<strong>维数差异</strong>之上。</p>
+        <p>以下是高度严谨的知识框架梳理，直接指出易错点与逻辑断层：</p>
+        <hr>
+        <h3>I. 赋范向量空间的度量基石 (Semaine 1)</h3>
+        <p>这一部分的核心在于明确“测量”的相对性。空间本身没有绝对的形状和距离，一切取决于你定义的“尺子”。</p>
+        <h4>1. 范数定义与常见范数</h4>
+        <ol>
+          <li><strong>范数的公理化定义 (Axiomes de la norme)</strong></li>
+        </ol>
+        <ul>
+          <li><strong>正定性 (Positivité)</strong>: $N(x) \ge 0$。</li>
+        </ul>
+        <ul>
+          <li><strong>分离性 (Séparation)</strong>: $N(x) = 0 \iff x = 0$。</li>
+        </ul>
+        <ul>
+          <li>_批判_: 缺失此公理的映射仅为<strong>半范数 (Semi-norme)</strong>。在半范数下，$x \neq y$ 却可能得出距离为 0，这将导致极限的唯一性彻底崩溃。</li>
+        </ul>
+        <ul>
+          <li><strong>齐次性 (Homogénéité)</strong>: $N(\lambda x) = |\lambda| N(x)$。</li>
+        </ul>
+        <ul>
+          <li><strong>三角不等式 (Inégalité triangulaire)</strong>: $N(x+y) \le N(x)+N(y)$。推论：逆三角不等式 $|N(x) - N(y)| \le N(x-y)$ 保证了范数映射本身的 Lipschitz 连续性。</li>
+        </ul>
+        <ol>
+          <li><strong>常见范数定义：</strong></li>
+        </ol>
+        <ul>
+          <li>1-范数 (Norme 1, $\|\cdot\|_1$)</li>
+        </ul>
+        <ul>
+          <li><strong>在 $\mathbb{K}^p$ 中</strong>（曼哈顿范数）：$\|x\|_1 = \sum_{i=1}^p |x_i|$</li>
+        </ul>
+        <ul>
+          <li><strong>在 $C^0([a,b])$ 中</strong>（平均/积分范数）：$\|f\|_1 = \int_a^b |f(t)| dt$</li>
+        </ul>
+        <ul>
+          <li><strong>物理意义</strong>：衡量所有分量绝对值的“绝对累积总量”或函数围成的“总面积”。它对局部的剧烈突变（尖刺）具有一定的容忍度，只要突变的宽度足够窄，面积影响就可以忽略。</li>
+        </ul>
+        <ul>
+          <li>2-范数 (Norme 2, $\|\cdot\|_2$)</li>
+        </ul>
+        <ul>
+          <li><strong>在 $\mathbb{K}^p$ 中</strong>（欧几里得范数）：$\|x\|_2 = \sqrt{\sum_{i=1}^p |x_i|^2}$</li>
+        </ul>
+        <ul>
+          <li><strong>在 $C^0([a,b])$ 中</strong>：$\|f\|_2 = \sqrt{\int_a^b |f(t)|^2 dt}$</li>
+        </ul>
+        <ul>
+          <li><strong>物理意义</strong>：经典的“直线距离”。它是唯一能够由内积（Produit scalaire）导出的范数，拥有最优良的几何性质（如正交性、勾股定理）。</li>
+        </ul>
+        <ul>
+          <li>无穷范数 (Norme $\infty$, $\|\cdot\|_\infty$)</li>
+        </ul>
+        <ul>
+          <li><strong>在 $\mathbb{K}^p$ 中</strong>（最大值范数）：$\|x\|_\infty = \max_{1 \le i \le p} |x_i|$</li>
+        </ul>
+        <ul>
+          <li><strong>在 $C^0([a,b])$ 中</strong>（一致/上确界范数）：$\|f\|_\infty = \sup_{t \in [a,b]} |f(t)|$</li>
+        </ul>
+        <ul>
+          <li><strong>物理意义</strong>：衡量“最坏情况”下的最大偏差。它对任何局部的突变采取零容忍态度，是控制要求最严苛的范数（即“最精细”的范数）。</li>
+        </ul>
+        <h4>2. 赋范空间的运算</h4>
+        <ol>
+          <li>子空间与诱导范数 (Sous-espace normé)</li>
+        </ol>
+        <p>若 $(E, N)$ 是一个赋范向量空间，且 $F$ 是 $E$ 的一个子空间，那么将 $N$ 的定义域限制在 $F$ 上，依然是一个合法的范数 。</p>
+        <ul>
+          <li><strong>定义</strong>：限制映射 $N|_F: F \to \mathbb{R}$ 被称为 <strong>诱导范数 (Norme induite)</strong> 。</li>
+        </ul>
+        <ul>
+          <li><strong>严谨性说明</strong>：由于范数公理是对 $E$ 中所有向量定义的，而 $F$ 的元素均属于 $E$，因此正定性、齐次性和三角不等式在 $F$ 上自动成立。这种性质保证了赋范空间的性质在子空间中是完好保留的 。</li>
+        </ul>
+        <hr>
+        <ol>
+          <li>乘积空间与乘积范数 (Produit d&#x27;espaces normés)</li>
+        </ol>
+        <p>给定两个赋范空间 $(E, N_E)$ 和 $(F, N_F)$，我们可以在它们的笛卡尔积 $E \times F$ 上通过“取大者”的方式构造范数 。</p>
+        <ul>
+          <li><strong>定义</strong>：在 $E \times F$ 上定义 <strong>乘积范数 (Norme produit)</strong> 为：</li>
+        </ul>
+        <div class="math-block">\[
+        N(x, y) = \max(N_E(x), N_F(y))
+        \]</div>
+        <ul>
+          <li><strong>逻辑证明要点</strong>：</li>
+        </ul>
+        <ul>
+          <li><strong>分离性</strong>：$N(x, y) = 0 \iff N_E(x) = 0$ 且 $N_F(y) = 0$。根据 $N_E, N_F$ 的分离性，这等价于 $(x, y) = (0_E, 0_F)$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>三角不等式</strong>：对于任何 $(x, y)$ 和 $(x&#x27;, y&#x27;)$：</li>
+        </ul>
+        <div class="math-block">\[
+        N_E(x+x&#x27;) \le N_E(x) + N_E(x&#x27;) \le N(x, y) + N(x&#x27;, y&#x27;)
+        \]</div>
+        <p>对 $N_F$ 同理，因此它们的最大值也满足此不等式。</p>
+        <hr>
+        <ol>
+          <li>范数的转移 (Transfert de normes)</li>
+        </ol>
+        <p>这是通过线性双射（同构）将一个空间的度量结构“平移”到另一个空间的方法 。</p>
+        <ul>
+          <li><strong>定义</strong>：设 $(E, N)$ 为 EVN，且存在<strong>线性双射</strong> $f: F \to E$。则在 $F$ 上可定义范数：</li>
+        </ul>
+        <div class="math-block">\[
+        \tilde{N}(x) = N(f(x))
+        \]</div>
+        <ul>
+          <li><strong>核心意义</strong>：该性质在<strong>有限维空间</strong>中至关重要。由于任何 $n$ 维空间都同构于 $\mathbb{K}^n$，我们可以通过选定一组基 $(e_1, \dots, e_n)$，将 $\mathbb{K}^n$ 上的经典范数（如 $L_1, L_2, L_\infty$）转移到抽象空间 $E$ 上 。</li>
+        </ul>
+        <hr>
+        <ol>
+          <li>代数范数 (Normes d&#x27;algèbre)</li>
+        </ol>
+        <p>当向量空间 $E$ 具备乘法结构（即成为一个<strong>代数</strong>）时，我们需要范数能够兼容这种乘法运算 。</p>
+        <ul>
+          <li><strong>定义</strong>：若范数 $N$ 满足以下两个附加性质，则称为 <strong>代数范数</strong>：</li>
+        </ul>
+        <ol>
+          <li><strong>单位元归一</strong>：$N(e) = 1$（$e$ 为乘法单位元）。</li>
+        </ol>
+        <ol>
+          <li><strong>次可乘性</strong>：$\forall a, b \in E, N(ab) \le N(a)N(b)$ 。</li>
+        </ol>
+        <ul>
+          <li><strong>实际应用</strong>：这在矩阵空间 $\mathcal{M}_n(\mathbb{K})$ 中尤为重要。例如，我们在后续练习中证明的最大行和范数就是一种典型的代数范数。</li>
+        </ul>
+        <h4>3. 范数诱导的几何结构</h4>
+        <ol>
+          <li>. <strong>范数诱导的几何结构</strong></li>
+        </ol>
+        <ul>
+          <li><strong>距离</strong>: $d(x,y) = N(x-y)$。</li>
+        </ul>
+        <ul>
+          <li><strong>开球 $B(x,r)$、闭球 $\overline{B}(x,r)$ 与球面 $S(x,r)$</strong>。</li>
+        </ul>
+        <ul>
+          <li>_批判_: 绝不能将高维或抽象空间的球预设为“圆形”。单位球的几何形状完全被范数决定（例如 $L_1$ 范数下为菱形，$L_\infty$ 范数下为正方形）。</li>
+        </ul>
+        <ul>
+          <li><strong>有界集 (Parties bornées)</strong>: 集合能被包含在某个有限半径的球内。有界性依赖于范数的选择。</li>
+        </ul>
+        <ol>
+          <li><strong>Lipschitz映射</strong></li>
+        </ol>
+        <ul>
+          <li><strong>Lipschitz 映射的定义</strong></li>
+        </ul>
+        <p>在一个一般的赋范空间框架下，判定一个映射 $f: E \to F$ 是否为 <strong>$K$-Lipschitz</strong>，本质上是看它对距离的“放大倍数”是否有一个确定的上限 。</p>
+        <ul>
+          <li><strong>形式定义</strong>：对于所有 $(x, y) \in E^2$，满足：</li>
+        </ul>
+        <div class="math-block">\[
+        \|f(x) - f(y)\|_F \le K \|x - y\|_E
+        \]</div>
+        <ul>
+          <li><strong>直观理解</strong>：这限制了函数 $f$ 变化的剧烈程度。如果你在自变量空间 $E$ 中挪动了一点点距离，那么函数值在目标空间 $F$ 中的变动不会超过这个位移的 $K$ 倍。</li>
+        </ul>
+        <ul>
+          <li><strong>范数依赖性</strong>：讲义强调，<strong>该性质严格取决于所选的范数</strong> 。如果你更换了 $E$ 或 $F$ 上的范数，同样的函数可能不再是 $K$-Lipschitz，或者常数 $K$ 会发生变化。</li>
+        </ul>
+        <hr>
+        <ul>
+          <li>$C^1$ 函数的特殊情形</li>
+        </ul>
+        <p>讲义通过一个命题回顾了实分析中的结论 ：</p>
+        <ul>
+          <li><strong>结论</strong>：定义在闭区间 $[a, b]$ 上的 $C^1$ 函数 $f$ 必然是 Lipschitz 的，且 Lipschitz 常数 $K = \|f&#x27;\|_{\infty, [a, b]}$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>背后的逻辑</strong>：这是<strong>有限增量定理</strong>（或均值定理）的直接后果。既然导数 $f&#x27;$ 是连续的且定义在闭区间上，它必然是有界的。函数斜率的最大值即为 Lipschitz 常数的最小值。</li>
+        </ul>
+        <hr>
+        <h3>II. 赋范空间中的序列与动态逼近 (Semaine 1 &amp; 2)</h3>
+        <p>这一部分的重点是将极限的 $\epsilon-N$ 语言推广到抽象向量中。 第二部分“赋范向量空间中的数列”是本课程从静态几何转向动态分析的关键。这一章不仅将实数数列的极限概念推广到了抽象空间（如矩阵空间、函数空间），还揭示了<strong>维数</strong>和<strong>范数选择</strong>对收敛性的深远影响 。</p>
+        <p>以下按照讲义的逻辑顺序为你详细阐释：</p>
+        <hr>
+        <h4>0. 基础铺垫：有界数列 (Suites bornées)</h4>
+        <p>在讨论极限之前，首先要定义数列的“活动范围” 。</p>
+        <ul>
+          <li><strong>定义</strong>：若存在 $M&gt;0$，使得对所有 $n \in \mathbb{N}$，都有 $\|u_n\|\le M$，则称数列 $(u_n)$ 是有界的 。</li>
+        </ul>
+        <ul>
+          <li><strong>判定集合有界性</strong>：一个集合 $A$ 是无界的，当且仅当能在其中找到一个范数趋于无穷的数列 。</li>
+        </ul>
+        <ul>
+          <li><strong>性质</strong>：数列无界，等价于它存在一个子列，其范数趋于 $+\infty$ 。</li>
+        </ul>
+        <p><strong>有限维空间中，范数都是等价的，因此考察有界性时可以任取范数。</strong></p>
+        <hr>
+        <h4>2.1 收敛数列 (Suites convergentes)</h4>
+        <p>这是本章的逻辑核心，它通过范数将抽象空间的收敛转化回了实数的收敛 。</p>
+        <ul>
+          <li><strong>$\epsilon-N$ 定义</strong>：数列 $(u_n)$ 在范数 $\|\cdot\|$ 下趋于 $l$，是指：</li>
+        </ul>
+        <div class="math-block">\[
+        \forall \epsilon &gt; 0, \exists N_0 \in \mathbb{N}, \forall n &gt; N_0, \|u_n - l\|\le \epsilon
+        \]</div>
+        <ul>
+          <li><strong>极限的本质</strong>：数列 $(u_n)$ 在 $E$ 中收敛于 $l$，等价于实数列 $v_n = \|u_n - l\|$ 收敛于 $0$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>强调</strong>：在赋范空间中，极限 $l$ 必须是该空间 $E$ 中的一个元素，而不是 $\pm\infty$ 。</li>
+        </ul>
+        <hr>
+        <h4>2.2 极限的性质 (Propriétés)</h4>
+        <p>大部分实数数列的性质在此依然适用，因为它们本质上是由范数的三角不等式支撑的 。</p>
+        <h5>继承自实数集的性质</h5>
+        <ul>
+          <li><strong>唯一性</strong>：收敛数列有且只有一个极限 。</li>
+        </ul>
+        <ul>
+          <li><strong>有界性</strong>：任何收敛数列必然是有界的 。</li>
+        </ul>
+        <ul>
+          <li><strong>线性</strong>：若 $u_n \to l, v_n \to l&#x27;$，则对任意标量 $\alpha, \beta$，有 $\alpha u_n + \beta v_n \to \alpha l + \beta l&#x27;$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>子列与聚点</strong>：收敛数列的任何子列都收敛于同一极限；收敛数列有且仅有一个聚点（即极限点） 。</li>
+        </ul>
+        <h5>范数与极限的特殊关系</h5>
+        <ul>
+          <li><strong>保范性</strong>：若 $u_n \to l$，则 $\|u_n\| \to \|l\|$。这是因为范数是 1-Lipschitz 连续的 。</li>
+        </ul>
+        <ul>
+          <li><strong>注意</strong>：反之不一定成立。即 $\|u_n\| \to \|l\|$ 无法推导出 $u_n \to l$（除非 $l=0$） 。</li>
+        </ul>
+        <h5>运算的局限性</h5>
+        <p>在一般赋范空间中，<strong>乘法和逆运算</strong>的极限需要格外小心：</p>
+        <ul>
+          <li><strong>存在性问题</strong>：两个向量可能根本没有乘法定义（如 $\mathbb{R}^3$ 的向量乘法） 。</li>
+        </ul>
+        <ul>
+          <li><strong>连续性问题</strong>：即使定义了乘法（如函数乘法），两数列乘积的极限也不一定等于极限的乘积 。</li>
+        </ul>
+        <ul>
+          <li><strong>矩阵的特例</strong>：若可逆矩阵序列 $A_n \to L$ 且 $L$ 可逆，则 $A_n^{-1} \to L^{-1}$ 成立 。</li>
+        </ul>
+        <hr>
+        <h4>2.3 范数的影响 (Influence de la norme)</h4>
+        <p>这是本章最重要的<strong>批判性思维</strong>点：<strong>收敛与否取决于你选用的“尺子”</strong> 。</p>
+        <p>在无限维空间（如函数空间 $C^0([0,1])$）中：</p>
+        <ul>
+          <li><strong>反例</strong>：考虑 $f_n(x) = \sqrt{n}x^n$ 。</li>
+        </ul>
+        <ul>
+          <li>该序列在 <strong>$L_1$ 范数</strong>下收敛于 0（围成的面积趋于 0） 。</li>
+        </ul>
+        <ul>
+          <li>但在 <strong>$L_\infty$ 范数</strong>下不收敛（函数最高点趋于 $\infty$） 。</li>
+        </ul>
+        <ul>
+          <li><strong>结论</strong>：<strong>在无限维空间谈论收敛，必须明确指明是在哪种范数下 。</strong></li>
+        </ul>
+        <hr>
+        <h4>2.4 在 $\mathbb{K}^p$ 空间中的收敛 (Convergence dans $\mathbb{K}^p$)</h4>
+        <p>在有限维空间 $\mathbb{K}^p$（如坐标空间、矩阵空间、定次多项式空间）中，收敛变得非常直观 ：</p>
+        <ul>
+          <li><strong>逐分量收敛</strong>：在 $\mathbb{K}^p$ 中（以 $\|\cdot\|_\infty$ 为例），向量序列收敛等价于它的每一个坐标分量分别在 $\mathbb{K}$ 中收敛 。</li>
+        </ul>
+        <ul>
+          <li><strong>Bolzano-Weierstrass 定理回归</strong>：在 $\mathbb{K}^p$ 中，任何有界序列必存在一个收敛子列 。证明思路是：对 $p$ 个坐标依次提取子列（逐项提取法） 。</li>
+        </ul>
+        <hr>
+        <h3>III. 范数的比较与等价 (Semaine 2)</h3>
+        <p>这一节直接决定了拓扑结构的唯一性问题。</p>
+        <ol>
+          <li><strong>范数的精细度 (Finesse)</strong></li>
+        </ol>
+        <ul>
+          <li>范数 $N_1$ 比 $N_2$ 更精细 $\iff \exists C &gt; 0, N_2(x) \le C N_1(x)$。</li>
+        </ul>
+        <ul>
+          <li>_物理意义_: 用 $N_1$ 能控制住的误差，必然也能用 $N_2$ 控制住。<strong>因此，在 $N_1$ 下收敛的序列，在 $N_2$ 下必然收敛。</strong> 这等价于函数$\frac{N_2(x)}{N_1(x)}$ 在除0之外的E定义域上有界。</li>
+        </ul>
+        <ol>
+          <li><strong>范数等价 (Normes équivalentes)</strong></li>
+        </ol>
+        <ul>
+          <li>定义: $\exists c, C &gt; 0$ 使得 $c N_1(x) \le N_2(x) \le C N_1(x)$。</li>
+        </ul>
+        <ul>
+          <li>_核心结论_: 等价的范数定义了<strong>完全相同的收敛序列、相同的开集和相同的闭集</strong>。</li>
+          <li>词汇：<strong>一致收敛</strong>指无限范数下数列收敛，<strong>平均收敛</strong>指1-范数下数列收敛</li>
+        </ul>
+        <ol>
+          <li><strong>有限维空间的大一统定理</strong></li>
+        </ol>
+        <ul>
+          <li><strong>定理</strong>: 在任何有限维向量空间中，<strong>所有范数都是等价的</strong>。</li>
+        </ul>
+        <ul>
+          <li>_推论_: 在有限维中研究收敛性和拓扑性质时，无需指明范数种类；但在无限维空间（如 $C^0([a,b])$）中，脱离具体范数谈论收敛是毫无意义的错误行为。</li>
+        </ul>
+        <hr>
+        <h3>IV. 纯拓扑结构 (Semaine 2)</h3>
+        <h4>1. 开集与闭集</h4>
+        <p>这是彻底摆脱对距离数值的依赖，建立纯粹“局部邻域”几何的一章。</p>
+        <ol>
+          <li><strong>邻域 (Voisinage)</strong></li>
+        </ol>
+        <ul>
+          <li>集合 $V$ 是 $x$ 的邻域 $\iff \exists \epsilon &gt; 0$ 使得开球 $B(x,\epsilon) \subset V$。邻域提供了点周围的“安全缓冲带”。</li>
+        </ul>
+        <ol>
+          <li><strong>开集 (Ouvert)</strong></li>
+        </ol>
+        <ul>
+          <li><strong>定义</strong>: 集合内每一个点都拥有完全属于该集合的邻域（即没有任何“硬边缘”的集合）。开球必定是开集。</li>
+        </ul>
+        <ul>
+          <li><strong>拓扑公理</strong>:</li>
+        </ul>
+        <ul>
+          <li>全空间 $E$ 和空集 $\emptyset$ 是开集。</li>
+        </ul>
+        <ul>
+          <li><strong>任意多个</strong>开集的并集是开集。</li>
+        </ul>
+        <ul>
+          <li><strong>仅限有限个</strong>开集的交集是开集（无限个开集的交集可能将缓冲带“挤压”至 0，从而变成闭集）。</li>
+        </ul>
+        <ol>
+          <li><strong>闭集 (Fermé)</strong></li>
+        </ol>
+        <ul>
+          <li><strong>严谨定义</strong>: 闭集是<strong>开集的补集 (Complémentaire)</strong>。</li>
+        </ul>
+        <ul>
+          <li>_批判_: “闭”不是“开”的反义词。集合可以既开又闭（如 $E$ 和 $\emptyset$），也可以既不开也不闭（如半开半闭区间）。</li>
+        </ul>
+        <ul>
+          <li><strong>拓扑公理（由德·摩根定律直接导出）</strong>:</li>
+        </ul>
+        <ul>
+          <li>全空间 $E$ 和空集 $\emptyset$ 是闭集。</li>
+        </ul>
+        <ul>
+          <li><strong>任意多个</strong>闭集的交集是闭集。</li>
+        </ul>
+        <ul>
+          <li><strong>仅限有限个</strong>闭集的并集是闭集。</li>
+        </ul>
+        <h4>2. 闭包、内部与边界</h4>
+        <h5>为什么开集闭集不够完善？</h5>
+        <p>在实际的数学分析中，如果只有“开集”和“闭集”这两个概念，拓扑学将是一门极其贫乏且毫无实战价值的学科。以下是为什么专家们必须构造出内部、闭包、边界和稠密性这些新概念的四个根本原因，拒绝将困难的事情简单化：</p>
+        <ol>
+          <li>打破“非黑即白”的僵局（精细化解剖普通集合）</li>
+        </ol>
+        <p>开集和闭集不是互斥的，更不是穷尽的 。空间中绝大多数的集合（比如半开半闭区间 $[0, 1[$，或者有理数集 $\mathbb{Q}$）<strong>既不是开集，也不是闭集</strong>。 如果你手里只有“开”和“闭”两个标签，面对这些海量的普通集合，你只能贴上一个“无属性”的废标签，分析就此陷入死胡同。</p>
+        <ul>
+          <li><strong>内部与闭包的介入</strong>：它们为任何一个“不规则”集合提供了完美的<strong>上下界夹逼</strong>。无论集合 $A$ 多么畸形，内部（$\mathring{A}$）为它提取出了包含在内的“最大纯开集” ，而闭包（$\overline{A}$）为它套上了外围的“最小纯闭集” 。这使得任何无法分类的集合，都可以被强制拉入开闭集的严谨分析框架中。</li>
+        </ul>
+        <ol>
+          <li>原始定义的计算无能（从“描述”走向“操作”）</li>
+        </ol>
+        <p>讲义中极其坦诚且实事求是地指出了这一点：要证明一个集合是闭集，原始策略是去证明它的补集是开集，但这在实战中往往<strong>非常低效 (très inefficace)</strong> 。 在泛函分析或矩阵空间中，面对一个由复杂方程定义的集合，去求它的补集并在多维空间里画开球是极其困难甚至不可能的。</p>
+        <ul>
+          <li><strong>序列特征的降维打击</strong>：闭包（点被吸附的极限）概念的引入，直接提供了一套极具杀伤力的操作工具——<strong>序列特征 (caractérisation séquentielle)</strong> 。你不再需要去画虚无缥缈的开球，只需要在集合里找一个序列 $(u_n)$，算一算它的极限是不是还在集合里。这把抽象的几何拓扑证明，极其干脆地降维成了你最熟悉的代数极限计算。</li>
+        </ul>
+        <ol>
+          <li>逼近理论的刚需（没有“稠密”，就没有现代分析）</li>
+        </ol>
+        <p>实战中，我们经常遇到一些极其复杂的对象（比如处处不可导的连续函数，或者不可逆的矩阵）。解决它们唯一的出路，是用极其简单的对象（比如多项式，或者可逆矩阵）去<strong>无限逼近</strong>它们。</p>
+        <ul>
+          <li><strong>稠密性 (Densité) 的威力</strong>：如果只有开集和闭集，你根本无法用数学语言严谨描述“逼近”这个动作。而稠密性（$\overline{A} = E$）精准地刻画了这种无孔不入的状态 。 例如，讲义中证明了可逆矩阵 $GL_n(\mathbb{K})$ 在全体矩阵 $\mathcal{M}_n(\mathbb{K})$ 中是稠密的 。这意味着什么？遇到任何关于一般矩阵的棘手命题，专家都会先在<strong>可逆矩阵</strong>上证明（因为可以求逆，代数操作极好），然后通过闭包的极限属性，直接将结论“传染”给所有不可逆的矩阵。没有闭包和稠密性的概念，这种分析学中最核心的“走捷径”证明手段将彻底不复存在。</li>
+        </ul>
+        <ol>
+          <li>锁定发生质变的“案发现场”（边界的意义）</li>
+        </ol>
+        <p>在偏微分方程或物理学中，系统内部往往是稳定且连续的，所有的剧变、能量交换、约束条件和不连续性，全部发生在“接触面”上。</p>
+        <ul>
+          <li>如果没有内部和闭包作为前置工具，你就根本无法在数学上严格写出什么是“边界 (Frontière)”（$\partial A = \overline{A} \setminus \mathring{A}$） 。它是空间中拓扑性质发生断裂的唯一场所，也是微积分基本定理（如斯托克斯定理）生效的核心区域。</li>
+        </ul>
+        <p>#### 闭集的进阶刻画 (IV.4 - IV.8)</p>
+        <p>在第二周，我们用“补集是开集”来定义闭集 。但在实战中，这个定义往往极其笨重。第三周引入了全新的、更具操作性的刻画方式：<strong>通过序列极限来捕捉闭集</strong> 。</p>
+        <ol>
+          <li>核心概念：点与集合的相对位置</li>
+        </ol>
+        <ul>
+          <li><strong>闭包/黏附点 (Point Adhérent &amp; Adhérence)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>定义</strong>：点 $x$ 属于集合 $A$ 的黏附（记为 $\overline{A}$），如果 $x$ 满足以下两个等价条件之一：</li>
+        </ul>
+        <ol>
+          <li><strong>邻域视角</strong>：无论多小的开球 $B(x, \epsilon)$，都必定能“咬”到 $A$ 里面至少一个点（即 $B(x, \epsilon) \cap A \neq \emptyset$） 。</li>
+        </ol>
+        <ol>
+          <li><strong>序列视角（极其重要）</strong>：存在一个完全由 $A$ 中元素构成的序列 $(x_n)$，它收敛于 $x$ 。</li>
+        </ol>
+        <ul>
+          <li><strong>性质</strong>：$\overline{A}$ 总是闭集，且是包含 $A$ 的<strong>最小闭集</strong> 。如果 $A$ 本身就是闭集，那么 $\overline{A} = A$ 。如果 $A \subset B$ 那么 $\overline{A} \subset \overline{B}$ .</li>
+        </ul>
+        <ul>
+          <li>范数影响：<strong>在有限维空间中，开集或闭集与范数选取无关，因为对于两个等价的范数，其在同一个向量空间中的开集相同。</strong></li>
+        </ul>
+        <ul>
+          <li><strong>内部 (Intérieur)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>定义</strong>：点 $x$ 是集合 $A$ 的内点（记为 $\mathring{A}$），如果 $A$ 能够在 $x$ 周围提供一个完整的“安全缓冲带”（即 $A$ 是 $x$ 的邻域） 。</li>
+        </ul>
+        <ul>
+          <li><strong>性质</strong>：$\mathring{A}$ 总是开集，且是包含在 $A$ 内部的<strong>最大开集</strong>。如果 $A \subset B$ 那么 $\mathring{A} \subset \mathring{B}$ . $A$  是开集当且仅当$A = \mathring{A}$.</li>
+        </ul>
+        <ul>
+          <li><strong>边界 (Frontière)</strong></li>
+        </ul>
+        <ul>
+          <li><strong>定义</strong>：记为 $\partial A$，等于黏附集减去内部（$\partial A = \overline{A} \setminus \mathring{A}$） 。边界点既不完全在里面，也不完全在外面。边界<strong>永远是闭集</strong> 。且有$\overline{A} \setminus \mathring{A} = \overline{A} \cap (E \setminus \mathring{A})$。</li>
+        </ul>
+        <ol>
+          <li>闭集的序列特征 (Caractérisation séquentielle)</li>
+        </ol>
+        <ul>
+          <li><strong>定理</strong>：一个集合 $F$ 是闭集，<strong>当且仅当</strong>它“吞下”了它所有的序列极限。也就是说，如果在 $F$ 里有一串点 $(u_n)$ 收敛到了某个点 $l$，那么这个极限 $l$ <strong>必须也属于 $F$</strong> 。</li>
+        </ul>
+        <ul>
+          <li><strong>应用场景</strong>：这解释了为什么“包含等号的不等式”定义的是闭集 （因为 $\le$ 在极限操作下是保号的），而严格不等式（$&lt;$）在极限下可能变成等号，所以定义的是开集 。</li>
+        </ul>
+        <ol>
+          <li>稠密性 (Densité)</li>
+        </ol>
+        <ul>
+          <li><strong>定义</strong>：</li>
+        </ul>
+        <ul>
+          <li><strong>局部稠密</strong>：集合 $A$ 在集合 $B$ 中稠密，意味着 $B \subset \overline{A}$。</li>
+          <li><strong>全局稠密</strong>：集合 $A$ 在全空间 $E$ 中稠密，意味着 $\overline{A} = E$。</li>
+        </ul>
+        <ul>
+          <li><strong>直观理解</strong>：对于全局稠密，$E$ 中的任何一个点，都可以被 $A$ 中的元素组成的序列<strong>无限逼近</strong> 。对于局部稠密，任取<strong>局部目标集合中的任意一点 $x \in B$</strong>，必然存在一个完全由 $A$ 中元素构成的序列 $(a_n)_{n \in \mathbb{N}}$，使得 $\lim_{n \to \infty} a_n = x$。</li>
+        </ul>
+        <ul>
+          <li><strong>经典例子</strong>：有理数 $\mathbb{Q}$ 在实数 $\mathbb{R}$ 中稠密 ；可逆矩阵群 $GL_n(\mathbb{K})$ 在全体 $n$ 阶方阵 $\mathcal{M}_n(\mathbb{K})$ 中稠密 。</li>
+        </ul>
+        <ol>
+          <li><strong>相对拓扑</strong></li>
+        </ol>
+        <p>在这个章节之前，我们所有的开集和闭集都是在“全宇宙”（即整个全空间 $E$）的视角下评判的。但现在，我们把目光局限在 $E$ 的一个任意子集 $A$ 上。我们要在 $A$ 这个“小宇宙”里，重新建立一套合法的拓扑规则。</p>
+        <p><strong>1. 相对开集 (Ouvert relatif)</strong></p>
+        <ul>
+          <li><strong>严谨定义</strong>：在子集 $A$ 中，什么样的一块区域 $\Omega$ 算作“没有硬边缘”的开集？你只需要在全宇宙 $E$ 中找一个真正的开集 $O$，然后用 $A$ 去截取它。即 $\Omega = O \cap A$。</li>
+        </ul>
+        <ul>
+          <li><strong>直观比喻</strong>：想象 $E$ 是整个三维空间，$A$ 是桌面。桌面上画一个“没有边界的圆面”（开圆盘），它在三维空间中绝对不是开集（因为它没有体积）。但是，如果你拿一个三维空间中的“无皮橘子”（空间开球）去穿过桌面，橘子和桌面相交截出来的那个二维切片，就是桌面 $A$ 上的<strong>相对开集</strong>。</li>
+        </ul>
+        <p><strong>2. 相对闭集 (Fermé relatif)</strong></p>
+        <ul>
+          <li><strong>严谨定义</strong>：同理，用全空间 $E$ 中的一个真正闭集 $F$ 去截取 $A$，得到的部分 $A \cap F$ 就是 $A$ 上的相对闭集。</li>
+        </ul>
+        <hr>
+        <p>讲义中列出的 <code>Proposition</code> 只是在向你确认一个代数事实：这种通过“交集”截取出来的开闭集，<strong>完美满足拓扑空间的三大公理</strong>。</p>
+        <ul>
+          <li>空集 $\emptyset$ 和“全集” $A$ 都在其中。（注意，在这里 $A$ 扮演了上帝视角的全集角色）。</li>
+        </ul>
+        <ul>
+          <li>它们对任意并集、有限交集封闭。</li>
+        </ul>
+        <ul>
+          <li>在 $A$ 这个小宇宙里，相对开集的补集（即 $A \setminus \Omega$）就是相对闭集。</li>
+        </ul>
+        <p>这意味着，你完全可以把 $A$ 当作一个独立的宇宙，在里面谈论收敛、极限和连续性，而不用去管 $E$ 外面发生了什么。</p>
+        <h3>V. 连续性 (Continuité)</h3>
+        <p>在赋范向量空间中，我们将实变函数中的极限和连续概念推广到了任意向量之间。</p>
+        <h4>1. 连续的定义与有限维空间下的规律</h4>
+        <ol>
+          <li>连续的严格定义</li>
+        </ol>
+        <ul>
+          <li><strong>$\epsilon-\alpha$ 定义</strong>：映射 $f: E \to F$ 在 $x_0$ 处连续，意味着：对于任意容忍误差 $\epsilon &gt; 0$，都能在自变量空间找到一个控制半径 $\alpha &gt; 0$，使得只要输入向量 $x$ 满足 $\|x - x_0\|_E \le \alpha$，输出向量必然满足 $\|f(x) - f(x_0)\|_F \le \epsilon$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>序列特征（实战最常用）</strong>：$f$ 连续，当且仅当对于任意趋近于 $x_0$ 的序列 $x_n$，其函数值序列 $f(x_n)$ 必然趋近于 $f(x_0)$ 。</li>
+        </ul>
+        <ol>
+          <li>连续性与范数的关系</li>
+        </ol>
+        <ul>
+          <li><strong>等价范数下的不变性</strong>：如果两个范数是等价的，它们定义出的“连续函数”集合完全相同 。</li>
+        </ul>
+        <ul>
+          <li><strong>维数法则</strong>：在<strong>有限维空间</strong>中，因为所有范数都等价，所以讨论函数是否连续时，你<strong>完全不需要指明是在什么范数下</strong> 。但在无限维空间中，这极其致命，一个函数可能在 $\|\cdot\|_1$ 下连续，但在 $\|\cdot\|_\infty$ 下断裂。</li>
+        </ul>
+        <ol>
+          <li>特殊的连续映射</li>
+        </ol>
+        <ul>
+          <li><strong>Lipschitz 映射</strong>：只要一个映射是 Lipschitz 的（即 $\|f(x) - f(y)\|\le K \|x - y\|$），它就<strong>绝对连续</strong> 。</li>
+        </ul>
+        <ul>
+          <li><strong>有限维空间的线性映射</strong>：</li>
+        </ul>
+        <ul>
+          <li><strong>绝对定理</strong>：在<strong>有限维空间</strong>中，<strong>所有</strong>的线性映射 $f: E \to F$ 都是 Lipschitz 的，因此<strong>都是连续的</strong> 。</li>
+        </ul>
+        <ul>
+          <li><strong>证明思路</strong>：利用基底展开，通过三角不等式和无穷范数将 $|f(x)|$ 放大到一个常数 $K$ 乘以 $\|x\|_\infty$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>推论</strong>：<strong>在有限维空间中，多线性映射（如矩阵乘法、内积、行列式）全部都是连续的 。</strong></li>
+        </ul>
+        <h4>2. 连续性的拓扑：逆象定理 (Théorème de continuité par images réciproques)</h4>
+        <p>这是第四周最核心的基石，它用纯粹的集合语言重新定义了连续性。</p>
+        <ol>
+          <li><strong>逆象的严谨定义</strong>： 对于映射 $f: E \to E&#x27;$ 和目标空间中的子集 $A&#x27;$，其逆象定义为 $f^{-1}(A&#x27;) = \{x \in E \mid f(x) \in A&#x27;\}$ 。</li>
+        </ol>
+        <ul>
+          <li><strong>一针见血的警告</strong>：这里的 $f^{-1}$ 仅仅是一个<strong>集合操作符</strong>，绝对不代表函数 $f$ 是双射或存在逆函数 ！</li>
+        </ul>
+        <ol>
+          <li><strong>核心定理陈述</strong>： 映射 $f$ 是连续的，<strong>当且仅当</strong>目标空间中任何开集 $\Omega&#x27;$ 的逆象 $f^{-1}(\Omega&#x27;)$ 必然是出发空间中的开集 ；同理，任何闭集 $F&#x27;$ 的逆象 $f^{-1}(F&#x27;)$ 必然是闭集 。</li>
+        </ol>
+        <ol>
+          <li><strong>（反例）</strong>： 讲义极其严厉地指出：连续函数的<strong>直接象 (Image directe)</strong> 绝对不能保证保持开闭性 ！如果 $\Omega$ 是开集，$f(\Omega)$ 不一定是开集 ；如果 $F$ 是闭集，$f(F)$ 也不一定是闭集 。永远不要用直接投射的思维去思考连续性，必须“反向回溯”。</li>
+        </ol>
+        <ol>
+          <li><strong>实战降维打击（水平集推论）</strong>： 利用逆象定理，判断由方程或不等式定义的集合属性变得易如反掌 。对于连续函数 $f: E \to \mathbb{R}$：</li>
+        </ol>
+        <ul>
+          <li>$\{x \in E \mid f(x) = c\}$ 是闭集（因为它是闭集 $\{c\}$ 的逆象） 。</li>
+        </ul>
+        <ul>
+          <li>$\{x \in E \mid f(x) \ge c\}$ 是闭集（闭集 $[c, +\infty[$ 的逆象） 。</li>
+        </ul>
+        <ul>
+          <li>$\{x \in E \mid f(x) &gt; c\}$ 是开集（开集 $]c, +\infty[$ 的逆象） 。</li>
+        </ul>
+        <h4>2.  可逆矩阵群的拓扑性质</h4>
+        <p>讲义直接将逆象定理应用到了线性代数的最深处，给出了一个你必须熟练掌握的经典命题 。</p>
+        <ul>
+          <li><strong>命题</strong>：可逆矩阵群 $GL_n(\mathbb{K})$ 是矩阵空间 $\mathcal{M}_n(\mathbb{K})$ 中的<strong>开集</strong> 。</li>
+        </ul>
+        <ul>
+          <li><strong>三行绝杀证明</strong>：</li>
+        </ul>
+        <ol>
+          <li>行列式映射 $\det : \mathcal{M}_n(\mathbb{K}) \to \mathbb{K}$ 是一个多项式映射，因此绝对连续 。</li>
+        </ol>
+        <ol>
+          <li>目标空间中，非零数字的集合 $\mathbb{K}^<em>$ 是闭集 $\{0\}$ 的补集，所以 $\mathbb{K}^</em>$ 是一个开集 。</li>
+        </ol>
+        <ol>
+          <li>$GL_n(\mathbb{K})$ 恰好是 $\mathbb{K}^<em>$ 在连续函数 $\det$ 下的逆象，即 $GL_n(\mathbb{K}) = \det^{-1}(\mathbb{K}^</em>)$ 。根据逆象定理，它必然是开集 。</li>
+        </ol>
+        <h4>3. 连续性与稠密性的锁定 (Continuité et densité)</h4>
+        <p>当一个函数是连续的，它的行为就失去了自由度；如果我们在一个稠密集上锁定了它的值，它在整个空间上的命运就被彻底注定。</p>
+        <ul>
+          <li><strong>重合定理 (Théorème de coïncidence)</strong>： 如果两个连续函数 $f$ 和 $g$ 在一个稠密子集 $B$ 上完全相等（即对所有 $x \in B$，$f(x) = g(x)$），那么它们在整个空间 $A$ 上必然处处相等 。</li>
+        </ul>
+        <ul>
+          <li>_严密证明逻辑_：考察集合 $F = \{x \in E \mid f(x) = g(x)\}$ 。因为 $f-g$ 连续，它是闭集 $\{0\}$ 的逆象，所以 $F$ 是闭集 。又因为已知 $F$ 包含了稠密集 $B$，所以 $F$ 必须包含 $B$ 的闭包 $\overline{B}$。由于 $B$ 稠密（$\overline{B} = E$），因此 $F = E$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>两大经典实战应用</strong>：</li>
+        </ul>
+        <ol>
+          <li><strong>解析函数方程 $f(x+y) = f(x) + f(y)$</strong>：先在整数 $\mathbb{Z}$ 上证明 $f(n) = nf(1)$ ，再推广到有理数 $\mathbb{Q}$ 上 $f(r) = rf(1)$ 。最后，<strong>利用 $\mathbb{Q}$ 在 $\mathbb{R}$ 中的稠密性以及 $f$ 的连续性</strong>，直接强行将结论延拓到所有实数 $x$，得出 $f(x) = xf(1)$（线性函数） 。</li>
+        </ol>
+        <ol>
+          <li><strong>矩阵恒等式 $\det(AB - \lambda I_n) = \det(BA - \lambda I_n)$</strong>：这种等式在 $A$ 不可逆时很难直接代数推导。专家策略是：先假设 $A$ 是可逆矩阵进行证明 。因为上一周（或本周早些时候的练习）证明了<strong>可逆矩阵 $GL_n(\mathbb{K})$ 在全矩阵空间中是稠密的</strong>，再配合行列式的连续性，直接将结论延拓到所有不可逆矩阵上！</li>
+        </ol>
+        <h4>4. 拓扑结构的终极等价：同胚 (Homéomorphisme)</h4>
+        <p>这是第四周最抽象但也最深刻的概念。它定义了在拓扑学家眼中，两个空间何时是“一模一样”的。</p>
+        <ol>
+          <li><strong>严苛的定义</strong>： 映射 $f: A \to A&#x27;$ 被称为一个同胚，必须同时满足三个铁壁般的条件 ：</li>
+        </ol>
+        <ul>
+          <li>$f$ 是双射 (bijective) 。</li>
+        </ul>
+        <ul>
+          <li>$f$ 是连续的 (continue) 。</li>
+        </ul>
+        <ul>
+          <li>它的逆映射 $f^{-1}$ 也是连续的 。 此时，我们称空间 $A$ 和 $A&#x27;$ 是<strong>同胚的 (homéomorphes)</strong> 。</li>
+        </ul>
+        <ol>
+          <li><strong>物理与几何意义</strong>： 两个同胚的集合，它们拥有<strong>完全相同的拓扑性质</strong> 。对于集合中的任何子集，如果它在 $A$ 中是开集（或闭集），它被映射到 $A&#x27;$ 后依然绝对是开集（或闭集） 。</li>
+        </ol>
+        <ol>
+          <li><strong>颠覆直觉的结论</strong>：</li>
+        </ol>
+        <ul>
+          <li>所有的开区间（比如 $]0, 1[$, $]-5, 10[$, 甚至整个实数轴 $\mathbb{R}$）在拓扑学上是<strong>完全同胚的</strong> 。拓扑学不关心长度，只关心“没有边界的延伸性” 。</li>
+        </ul>
+        <ul>
+          <li>闭区间 $[a, b]$ 同胚于 $[0, 1]$ 。</li>
+        </ul>
+        <ul>
+          <li><strong>范数等价的拓扑本质</strong>：同一个空间上的两个范数 $N$ 和 $N&#x27;$ 是等价的，<strong>当且仅当</strong>恒等映射 $Id_E: (E, N) \to (E, N&#x27;)$ 是一个同胚 。</li>
+        </ul>
+        <h3>Ⅵ. 紧致性（Compacité）</h3>
+        <p>拓扑学第五周的课程主要围绕核心概念“紧致性”（Compacité）<strong>及其与</strong>连续性（Continuité）<strong>和</strong>道路连通性（Connexité par arcs）的深刻联系展开。紧致性将“波尔查诺-魏尔斯特拉斯定理（Bolzano-Weierstrass）”推广到了更一般的赋范向量空间中，是确保极值存在和控制映射行为的关键拓扑工具。</p>
+        <p>以下是本周课程内容的全面总结与知识脉络构建：</p>
+        <h4>1. 紧致性的核心定义 (Définition)</h4>
+        <p>知识脉络起点：在一般的赋范空间中，有界序列不一定有收敛子列，因此我们需要用“紧致性”来约束空间的拓扑性质。</p>
+        <ul>
+          <li>在赋范向量空间 $(E,||\cdot||)$ 中，如果其子集 $A$ 中的<strong>任意数列都至少拥有一个属于 $A$ 的聚点</strong>（valeur d&#x27;adhérence），则称集合 $A$ 是紧致的（compacte）。</li>
+        </ul>
+        <h4>2. 紧集的一般性质 (Propriétés générales)</h4>
+        <p>有了定义后，课程推导了紧集在拓扑空间中必然具备的基本形态特征：</p>
+        <ul>
+          <li><strong>封闭性</strong>：任何紧集必定是闭集。</li>
+        </ul>
+        <ul>
+          <li><strong>有界性</strong>：任何紧集必定是有界集。</li>
+        </ul>
+        <ul>
+          <li><strong>闭集的遗传性</strong>：如果 $K$ 是一个紧集，且 $F$ 是包含于 $K$ 中的闭集，那么 $F$ 也必定是紧致的。</li>
+        </ul>
+        <h4>3. 有限维空间中的紧致性 (En dimension finie)</h4>
+        <p>知识脉络的分支：在无限维空间中判断紧致性非常困难，但在有限维空间中，存在一个极其强大且简便的等价判定定理。</p>
+        <ul>
+          <li><strong>核心定理</strong>：在<strong>有限维</strong>的赋范向量空间中，子集 $K$ 是紧致的，<strong>当且仅当它是闭集且有界集</strong>。</li>
+        </ul>
+        <ul>
+          <li><strong>判定方法论</strong>：</li>
+        </ul>
+        <ul>
+          <li>如果空间是有限维的，只需证明目标集合既闭合又有界即可。</li>
+        </ul>
+        <ul>
+          <li>在一般情况（无限维）下，必须回到原始定义，证明在集合中取出的任意数列都能构造出一个收敛的子列。</li>
+        </ul>
+        <ul>
+          <li><strong>经典实例与陷阱</strong>：</li>
+        </ul>
+        <ul>
+          <li>$\mathbb{R}$ 中的线段、$\mathbb{K}^n$ 中的闭球体和球面，以及矩阵空间 $\mathcal{M}_n(\mathbb{R})$ 中的正交矩阵群 $\mathcal{O}_n(\mathbb{R})$，都是紧集。</li>
+        </ul>
+        <ul>
+          <li><strong>无限维陷阱</strong>：在赋予范数 $||\sum a_k X^k|| = \sup |a_k|$ 的多项式空间 $\mathbb{R}[X]$ 中，单位球面虽然是闭集且有界，但它<strong>不是紧集</strong>。</li>
+        </ul>
+        <h4>4.  紧致性与连续性的强相互作用 (Compacité et continuité)</h4>
+        <p>这是本章的最高潮，揭示了紧致空间在连续映射下的优良传递性质。</p>
+        <ul>
+          <li><strong>保紧性</strong>：紧集在连续映射下的直接像（image directe）依然是一个紧集。</li>
+        </ul>
+        <ul>
+          <li><strong>极值定理（Théorème des bornes atteintes）</strong>：设 $K$ 为赋范空间内的紧集，$f: K \to \mathbb{R}$ 为连续映射，那么 $f$ 一定是有界的，并且必定能在 $K$ 内取得其上确界（最大值）和下确界（最小值）。这成功将实变函数中的闭区间极值定理推广到了高维/抽象空间。</li>
+        </ul>
+        <ul>
+          <li><strong>海涅定理（Théorème de Heine）</strong>：定义在紧集上的任何连续函数都必然是<strong>一致连续的</strong>（uniformément continue）。</li>
+        </ul>
+        <h4>5. 实际应用 (Exemples d&#x27;application)</h4>
+        <p>紧致性的相关定理常被用于证明数学对象（如极值、界限）的必然存在性：</p>
+        <ul>
+          <li>可以用于证明定义在闭区间 $[0, 1]$ 上且严格小于 1 的连续函数，必定存在一个上界 $a$ 满足 $f(x) \le a &lt; 1$。</li>
+        </ul>
+        <ul>
+          <li>证明具有 $\pm\infty$ 处有限极限的 $\mathbb{R}$ 上连续函数必定有界。</li>
+        </ul>
+        <ul>
+          <li>证明到有限维子空间投影的存在性，以及证明有限维空间上线代映射的范数最大值是可达的。</li>
+        </ul>
+        <h4>6.  补充拓扑概念：道路连通性 (Connexité par arcs)</h4>
+        <p>作为紧致性的补充，课程最后探讨了空间的另一种形态——连通性。</p>
+        <ul>
+          <li><strong>定义</strong>：空间内连接两点 $a$ 和 $b$ 的“道路”是一个连续映射 $\phi: [0, 1] \to A$，满足起点 $\phi(0)=a$ 且终点 $\phi(1)=b$。若集合内任意两点均能由道路连接，则称其为道路连通的。</li>
+        </ul>
+        <ul>
+          <li><strong>与连续性的关系</strong>：道路连通集在连续映射下的像仍是道路连通的（本质上是连续函数介值定理的推广）。</li>
+        </ul>
+        <ul>
+          <li><strong>特殊性质</strong>：定义在道路连通集上且取值仅为整数（$\mathbb{Z}$）的连续函数，必定是<strong>常数函数</strong>。此外，赋范向量空间 $E$ 中，既是开集又是闭集的子集仅有全空间 $E$ 本身和空集 $\emptyset$。</li>
+        </ul>
+      </article>
+    </main>
+  </body>
+</html>

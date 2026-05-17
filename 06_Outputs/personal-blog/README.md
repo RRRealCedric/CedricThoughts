@@ -45,7 +45,7 @@ python3 06_Outputs/personal-blog/tools/publish_note.py \
 - `--label`：文章小标签。
 - `--force`：允许覆盖已经生成的同名 HTML。
 - `--no-index`：只生成文章页，不更新首页。
-- `--collection`：可选，把文章加入对应大类下的二级分类页，例如 `mathematics`、`philosophy`、`projects`。
+- `--collection`：可选，把文章加入对应大类下的二级分类页，例如 `mathematics`、`economics`、`philosophy`、`projects`。
 - `--collection-section`：分类页中的板块标题，例如 `代数学`、`分析学`、`审美目的论`、`马克思主义`。
 
 脚本会拒绝发布 `_private/` 下的文件。

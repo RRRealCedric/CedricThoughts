@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Algèbre Ch2 Sous-espaces vectoriels | Cedric Notes</title>
+    <meta name="description" content="向量子空间、线性组合、基与维数。">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body class="note-page">
+    <main class="note-main">
+      <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
+      <header class="note-header">
+        <p class="note-meta">Learning</p>
+        <h1>Algèbre Ch2 Sous-espaces vectoriels</h1>
+        <p class="note-lede">向量子空间、线性组合、基与维数。</p>
+      </header>
+      <article class="note-content">
+        <p>本章的知识脉络以“空间的分解与代数结构的简化”为核心展开。首先通过定义向量子空间的和与直和，建立将复杂向量空间拆解为独立子空间的几何框架（第一部分）；进而引入分块矩阵这一代数工具，用于在矩阵层面表达和计算这种空间的分解（第二部分）；最后，结合稳定子空间的概念，将空间的分解与线性映射的矩阵表示完美结合，揭示了自同态在不变子空间上的作用规律，并实现了分块矩阵的对角化或三角化简（第三部分）。</p>
+        <h4>第一部分：向量子空间的有限和 (Somme finie de sous-espaces vectoriels)</h4>
+        <p><strong>1. 子空间的有限和与直和的定义</strong></p>
+        <ul>
+          <li><strong>定义1（子空间的和）</strong>：$p$ 个子空间 $E_{1}, ..., E_{p}$ 的有限和被定义为集合 $\sum_{i=1}^{p}E_{i} = \{x_{1}+...+x_{p}, (x_{1},...,x_{p})\in E_{1}\times...\times E_{p}\}$。</li>
+        </ul>
+        <ul>
+          <li><strong>性质1</strong>：上述子空间的有限和仍然是 $E$ 的一个向量子空间。</li>
+        </ul>
+        <ul>
+          <li><strong>性质2（运算性质）</strong>：子空间求和满足交换律与结合律。只包含零向量的平凡子空间是该运算的单位元，且对空集求和的结果为零子空间 $\{0_{E}\}$。</li>
+        </ul>
+        <ul>
+          <li><strong>性质3</strong>：一个有限向量族生成的子空间，等于各个向量分别生成的子空间之和。</li>
+        </ul>
+        <ul>
+          <li><strong>性质4（极小性）</strong>：$\sum_{i=1}^{p}E_{i}$ 是包含了所有 $E_{i}$ 的最小向量子空间。</li>
+        </ul>
+        <ul>
+          <li><strong>定义2（直和）</strong>：如果和空间 $F$ 中的任意向量 $x$ 都能唯一地表示为各子空间中向量的和（即存在唯一的元组），则称该和为直和，记作 $\bigoplus_{i=1}^{p}E_{i}$。</li>
+        </ul>
+        <p><strong>2. 直和的等价刻画与性质</strong></p>
+        <ul>
+          <li><strong>性质5</strong>：如果一组子空间的和是直和，那么其任意非空子集的和也必定是直和。</li>
+        </ul>
+        <ul>
+          <li><strong>性质6</strong>：一组子空间的和为直和，当且仅当映射 $(x_{i})_{i\in I}\mapsto\sum_{i\in I}x_{i}$ 是一个同构。</li>
+        </ul>
+        <ul>
+          <li><strong>性质7（直和的特征刻画）</strong>：子空间 $E_{1}, ..., E_{p}$ 为直和，当且仅当向量方程 $x_{1}+...+x_{p}=0_{E}$ 的唯一解是所有分量皆为零，即 $x_{1}=...=x_{p}=0_{E}$。</li>
+        </ul>
+        <ul>
+          <li><strong>性质8</strong>：由线性无关向量族生成的空间，等于各个向量生成空间的直和。</li>
+        </ul>
+        <p><strong>3. 空间的直和分解</strong></p>
+        <ul>
+          <li><strong>定义3（分解）</strong>：如果空间 $E$ 能够表示为若干子空间的直和，则称 $E$ 在这些子空间上分解为直和。</li>
+        </ul>
+        <ul>
+          <li><strong>定义4（伴随投影）</strong>：在直和分解 $E=\bigoplus_{i=1}^{p}E_{i}$ 中，伴随投影族 $\{p_{j}\}$ 定义为沿其他所有子空间的直和方向，到目标子空间 $E_{j}$ 上的投影。</li>
+        </ul>
+        <ul>
+          <li><strong>性质9（投影性质）</strong>：伴随投影族满足所有投影的加和为恒等映射 $Id_{E}$；且不同投影算子的复合恒为零映射（$p_{i}\circ p_{j}=0_{\mathcal{L}(E)}$，当 $i \neq j$ 时）。</li>
+        </ul>
+        <ul>
+          <li><strong>性质10（映射的限制决定性）</strong>：如果 $E$ 被分解为直和，那么在 $E$ 上定义的线性映射可以由其在各个分量子空间上的限制映射唯一确定。</li>
+        </ul>
+        <p><strong>4. 有限维空间下的特性</strong></p>
+        <ul>
+          <li><strong>性质11</strong>：将空间 $E$ 的一组基划分为若干不相交的子集，由这些子集分别生成的子空间相互独立，且它们的直和等于 $E$。</li>
+        </ul>
+        <ul>
+          <li><strong>性质12（适应基）</strong>：将直和分解中各个子空间的一组基拼接（级联）在一起，即可构成全空间 $E$ 的一组基，称为适应该直和分解的基。</li>
+        </ul>
+        <ul>
+          <li><strong>性质13（维数公式）</strong>：子空间之和的维数小于等于各子空间维数之和，即 $\dim(\sum_{i=1}^{p}E_{i})\le\sum_{i=1}^{p}\dim E_{i}$。二者相等当且仅当该和为直和。</li>
+        </ul>
+        <h4>第二部分：分块矩阵 (Matrices par blocs)</h4>
+        <p><strong>1. 分块定义与基础运算</strong></p>
+        <ul>
+          <li><strong>定义5（分块写法）</strong>：将矩阵划分为子矩阵块的形式，要求分块矩阵中位于同一行的子块具有相同的行数，同一列的子块具有相同的列数。</li>
+        </ul>
+        <ul>
+          <li><strong>性质14（分块运算）</strong>：</li>
+        </ul>
+        <ul>
+          <li>转置：块矩阵的转置要求将块的位置转置，并且对每个子块内部进行转置。</li>
+        </ul>
+        <ul>
+          <li>线性组合：尺寸完全兼容的块矩阵可以直接对对应位置的块进行加法和数乘。</li>
+        </ul>
+        <ul>
+          <li>乘法：当相邻矩阵块的行列数兼容时，分块乘法规则与普通矩阵乘法一致。需特别注意，矩阵块之间不满足乘法交换律。</li>
+        </ul>
+        <p><strong>2. 特殊的分块矩阵类型及其性质</strong></p>
+        <ul>
+          <li><strong>定义6</strong>：定义了分块上三角矩阵、分块下三角矩阵以及分块对角矩阵。</li>
+        </ul>
+        <ul>
+          <li><strong>性质15（三角块的封闭性）</strong>：同类分块上（下）三角矩阵的加法和乘法结果，仍然是分块上（下）三角矩阵。</li>
+        </ul>
+        <ul>
+          <li><strong>性质16（对角块的封闭性）</strong>：同类分块对角矩阵的加法和乘法结果，仍然是分块对角矩阵，且对应乘积为各个对角块独立相乘。</li>
+        </ul>
+        <ul>
+          <li><strong>性质17（逆矩阵）</strong>：分块对角矩阵可逆当且仅当其主对角线上的每一个子块都是可逆矩阵。此时它的逆矩阵由各主对角块的逆矩阵所构成的分块对角矩阵给出。</li>
+        </ul>
+        <ul>
+          <li><strong>性质18（行列式）</strong>：分块三角矩阵（包括分块对角矩阵）的行列式等于其所有主对角线块矩阵行列式的连乘积。</li>
+        </ul>
+        <h4>第三部分：稳定子空间与诱导自同态 (Sous-espaces stables et endomorphismes induits)</h4>
+        <p><strong>1. 稳定性定义及其直接推论</strong></p>
+        <ul>
+          <li><strong>定义7（稳定子空间）</strong>：对于自同态 $u\in\mathcal{L}(E)$，如果向量子空间 $F$ 满足 $u(F)\subset F$（即空间内向量的像仍在该空间内），则称 $F$ 为关于 $u$ 的稳定子空间。</li>
+        </ul>
+        <ul>
+          <li><strong>性质19</strong>：稳定子空间的交集和稳定子空间的加和依然是稳定的。自同态 $u$ 的像空间（$\operatorname{Im} u$）和核空间（$\ker u$）均是 $u$ 的稳定子空间。</li>
+        </ul>
+        <ul>
+          <li><strong>性质20</strong>：如果两个自同态映射可交换（$u\circ v = v\circ u$），则 $u$ 的像空间和核空间都是 $v$ 的稳定子空间（反之同理）。</li>
+        </ul>
+        <ul>
+          <li><strong>性质21（有限维判据）</strong>：对于有限维子空间 $F$，其在 $u$ 下稳定，当且仅当构成 $F$ 的生成族中的所有向量的像都属于 $F$。</li>
+        </ul>
+        <ul>
+          <li><strong>定义8（诱导自同态）</strong>：若 $F$ 是稳定子空间，则映射 $u$ 在 $F$ 上的限制可视为定义在 $F$ 上的自同态 $u_{F}$（即 $\forall x\in F, u_{F}(x)=u(x)$），这区别于纯粹的限制映射，被称为诱导自同态。</li>
+        </ul>
+        <p><strong>2. 稳定性与分块矩阵的对应关系</strong></p>
+        <ul>
+          <li><strong>性质22（核心代数表示）</strong>：假设空间 $E$ 分解为直和 $F\oplus G$，并在适应直和的基底上将自同态 $u$ 写作分块矩阵 $\begin{pmatrix} A &amp; B \\ C &amp; D \end{pmatrix}$。</li>
+        </ul>
+        <ul>
+          <li>子空间 $F$ 对 $u$ 稳定，当且仅当矩阵块 $C=0$；此时诱导自同态 $u_{F}$ 在对应基下的矩阵正是块 $A$。</li>
+        </ul>
+        <ul>
+          <li>子空间 $G$ 对 $u$ 稳定，当且仅当矩阵块 $B=0$；此时诱导自同态 $u_{G}$ 在对应基下的矩阵正是块 $D$。</li>
+        </ul>
+        <p>-</p>
+      </article>
+    </main>
+  </body>
+</html>
