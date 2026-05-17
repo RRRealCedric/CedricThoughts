@@ -37,6 +37,8 @@ class NoteMetadata:
     category: str
     label: str
     slug: str
+    collection: str | None
+    collection_section: str | None
 
 
 def parse_args() -> argparse.Namespace:
@@ -54,6 +56,14 @@ def parse_args() -> argparse.Namespace:
         help="Homepage filter category.",
     )
     parser.add_argument("--label", help="Small label above the article title.")
+    parser.add_argument(
+        "--collection",
+        help="Collection page slug under collections/, for example mathematics or philosophy.",
+    )
+    parser.add_argument(
+        "--collection-section",
+        help="Section title inside the collection page, for example 代数学 or 审美目的论.",
+    )
     parser.add_argument(
         "--no-index",
         action="store_true",
@@ -415,6 +425,17 @@ def post_entry(metadata: NoteMetadata) -> str:
 """
 
 
+def collection_entry(metadata: NoteMetadata) -> str:
+    return f"""          <article class="collection-row">
+            <div>
+              <h3>{html.escape(metadata.title)}</h3>
+              <p>{html.escape(metadata.description)}</p>
+            </div>
+            <a href="../notes/{html.escape(metadata.slug)}.html">Open</a>
+          </article>
+"""
+
+
 def update_index(metadata: NoteMetadata) -> bool:
     index = INDEX_PATH.read_text(encoding="utf-8")
     href = f'./notes/{metadata.slug}.html'
@@ -426,6 +447,40 @@ def update_index(metadata: NoteMetadata) -> bool:
         sys.exit("Could not find the homepage post list insertion point.")
     index = index.replace(marker, marker + post_entry(metadata), 1)
     INDEX_PATH.write_text(index, encoding="utf-8")
+    return True
+
+
+def update_collection(metadata: NoteMetadata) -> bool:
+    if not metadata.collection or not metadata.collection_section:
+        return False
+
+    collection_path = BLOG_ROOT / "collections" / f"{metadata.collection}.html"
+    if not collection_path.exists():
+        sys.exit(f"Collection page does not exist: {collection_path}")
+
+    collection = collection_path.read_text(encoding="utf-8")
+    href = f'../notes/{metadata.slug}.html'
+    if href in collection:
+        return False
+
+    section_pattern = re.compile(
+        r"(<section class=\"collection-section\">\s*"
+        r"<h2>"
+        + re.escape(metadata.collection_section)
+        + r"</h2>\s*"
+        r"<div class=\"collection-list\">\n)",
+        re.MULTILINE,
+    )
+    match = section_pattern.search(collection)
+    if not match:
+        sys.exit(
+            "Could not find collection section "
+            f"{metadata.collection_section!r} in {collection_path}."
+        )
+
+    insertion = match.group(1) + collection_entry(metadata)
+    collection = collection[: match.start(1)] + insertion + collection[match.end(1) :]
+    collection_path.write_text(collection, encoding="utf-8")
     return True
 
 
@@ -445,6 +500,8 @@ def main() -> None:
         category=args.category,
         label=label,
         slug=slug,
+        collection=args.collection,
+        collection_section=args.collection_section,
     )
 
     output_path = NOTES_DIR / f"{metadata.slug}.html"
@@ -457,9 +514,11 @@ def main() -> None:
     index_updated = False
     if not args.no_index:
         index_updated = update_index(metadata)
+    collection_updated = update_collection(metadata)
 
     print(f"Published: {output_path.relative_to(VAULT_ROOT)}")
     print(f"Homepage updated: {'yes' if index_updated else 'no'}")
+    print(f"Collection updated: {'yes' if collection_updated else 'no'}")
 
 
 if __name__ == "__main__":

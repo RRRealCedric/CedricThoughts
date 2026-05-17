@@ -46,5 +46,19 @@ python3 06_Outputs/personal-blog/tools/publish_note.py \
 - `--label`：文章小标签。
 - `--force`：允许覆盖已经生成的同名 HTML。
 - `--no-index`：只生成文章页，不更新首页。
+- `--collection`：可选，把文章加入 `collections/` 下的分类页，例如 `mathematics`、`philosophy`。
+- `--collection-section`：分类页中的板块标题，例如 `代数学`、`分析学`、`审美目的论`、`马克思主义`。
 
 脚本会拒绝发布 `_private/` 下的文件。
+
+示例：发布到“数学 / 代数学”：
+
+```bash
+python3 06_Outputs/personal-blog/tools/publish_note.py \
+  "04_Resources/Mathe/Algèbre Ch2 Sous-espaces vectoriels.md" \
+  --category learning \
+  --slug algebra-subspaces \
+  --description "向量子空间、线性组合、基与维数。" \
+  --collection mathematics \
+  --collection-section 代数学
+```
