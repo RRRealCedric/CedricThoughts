@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cedric Notes | Projects, Learning, Thinking</title>
+    <meta
+      name="description"
+      content="Cedric 的个人博客与知识库入口，记录项目、工程实践、学习笔记与哲学思考。"
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Cedric Notes home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span>Cedric Notes</span>
+      </a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="#projects">Projects</a>
+        <a href="#writing">Writing</a>
+        <a href="#learning">Learning</a>
+        <a href="#about">About</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero section">
+        <div class="hero-copy">
+          <p class="eyebrow">Personal knowledge system</p>
+          <h1>把项目、学习和思考，整理成可长期生长的知识作品。</h1>
+          <p class="hero-lede">
+            这里是 Cedric 的个人博客入口：一部分是工程项目日志，一部分是数学、经济与 AI 学习笔记，
+            另一部分是关于审美目的论、主体性与现代生活的长期思考。
+          </p>
+          <div class="hero-actions" aria-label="Primary links">
+            <a class="primary-link" href="#writing">阅读笔记</a>
+            <a class="secondary-link" href="https://github.com/RRRealCedric">GitHub</a>
+          </div>
+        </div>
+        <figure class="hero-visual">
+          <img src="./assets/knowledge-map.svg" alt="由项目、学习、思考和输出组成的知识地图">
+        </figure>
+      </section>
+
+      <section class="section metrics" aria-label="Vault overview">
+        <article>
+          <span>01</span>
+          <strong>Projects</strong>
+          <p>语音 Agent、工程工作流与长期项目记录。</p>
+        </article>
+        <article>
+          <span>02</span>
+          <strong>Learning</strong>
+          <p>数学、经济、AI 与 C 语言的结构化学习。</p>
+        </article>
+        <article>
+          <span>03</span>
+          <strong>Thinking</strong>
+          <p>审美目的论、主体性、承认与现代性批判。</p>
+        </article>
+      </section>
+
+      <section class="section split" id="projects">
+        <div class="section-heading">
+          <p class="eyebrow">Selected projects</p>
+          <h2>工程不是代码堆积，而是把复杂系统变得可运行、可解释、可复盘。</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card strong">
+            <p class="card-label">Voice Agent</p>
+            <h3>X-Talk</h3>
+            <p>
+              一个全双工级联式语音对话系统框架，关注实时交互、事件驱动架构、模型可替换性与长期记忆能力。
+            </p>
+            <a href="../../02_Projects/xtalk_agent/plans/xtalk_architecture.md">查看架构笔记</a>
+          </article>
+          <article class="feature-card">
+            <p class="card-label">Agent Memory</p>
+            <h3>长期记忆系统</h3>
+            <p>
+              为语音 Agent 设计跨会话记忆：用户画像、偏好、项目状态、显式记忆、检索注入与调试 API。
+            </p>
+            <a href="../../02_Projects/xtalk_agent/plans/memory_plan.md">查看记忆计划</a>
+          </article>
+          <article class="feature-card">
+            <p class="card-label">Workflow</p>
+            <h3>Mac - Server - GitHub</h3>
+            <p>
+              本地 Mac 负责 AI agent 编码，服务器负责测试训练，GitHub 负责协作与版本事实源。
+            </p>
+            <a href="../../02_Projects/Git_Workflow/engineering_workflow_mac_server_github.md">查看工作流</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="section writing-section" id="writing">
+        <div class="section-heading compact">
+          <p class="eyebrow">Writing</p>
+          <h2>最新可公开整理的笔记</h2>
+        </div>
+        <div class="toolbar" aria-label="Article filters">
+          <button class="filter-button is-active" data-filter="all" type="button">All</button>
+          <button class="filter-button" data-filter="project" type="button">Projects</button>
+          <button class="filter-button" data-filter="philosophy" type="button">Philosophy</button>
+          <button class="filter-button" data-filter="learning" type="button">Learning</button>
+        </div>
+        <div class="post-list" id="postList">
+          <article class="post-row" data-category="project">
+            <div>
+              <p class="post-meta">Project Note</p>
+              <h3>X-Talk 系统架构分析</h3>
+              <p>从 API、事件总线、Managers、Agent 和 Models 分层理解实时语音 Agent 系统。</p>
+            </div>
+            <a href="../../02_Projects/xtalk_agent/plans/xtalk_architecture.md">Open</a>
+          </article>
+          <article class="post-row" data-category="project">
+            <div>
+              <p class="post-meta">Engineering</p>
+              <h3>Mac 本地开发 - 服务器测试 - GitHub 协作工程指南</h3>
+              <p>定义本地开发、远端验证和多人协作之间的责任边界与闭环。</p>
+            </div>
+            <a href="../../02_Projects/Git_Workflow/engineering_workflow_mac_server_github.md">Open</a>
+          </article>
+          <article class="post-row" data-category="philosophy">
+            <div>
+              <p class="post-meta">Philosophy</p>
+              <h3>美作为终极解释</h3>
+              <p>关于主体、承认、世界生成与审美目的论的一篇系统性长文。</p>
+            </div>
+            <a href="../../03_Areas/Philosophy/美作为终极解释：主体、承认与世界生成的审美目的论.md">Open</a>
+          </article>
+          <article class="post-row" data-category="philosophy">
+            <div>
+              <p class="post-meta">Philosophy</p>
+              <h3>审美目的论的实践论</h3>
+              <p>把审美目的论从形而上学问题推进到实践、选择与生活形式。</p>
+            </div>
+            <a href="../../03_Areas/Philosophy/审美目的论的实践论.md">Open</a>
+          </article>
+          <article class="post-row" data-category="learning">
+            <div>
+              <p class="post-meta">Economy</p>
+              <h3>The Economics of Taxation</h3>
+              <p>税收经济学资源笔记，适合作为财政、激励与制度分析的学习入口。</p>
+            </div>
+            <a href="../../04_Resources/Economy/The Economics of Taxation.md">Open</a>
+          </article>
+          <article class="post-row" data-category="learning">
+            <div>
+              <p class="post-meta">Mathematics</p>
+              <h3>Algèbre 与 Topologie 学习笔记</h3>
+              <p>线性代数、endomorphismes、赋范空间、连续性与可微性等课程笔记。</p>
+            </div>
+            <a href="../../04_Resources/Mathe/Algèbre Ch1 Polynôme.md">Open</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="section learning" id="learning">
+        <div class="section-heading">
+          <p class="eyebrow">Knowledge map</p>
+          <h2>知识库的长期栏目</h2>
+        </div>
+        <div class="topic-grid">
+          <a class="topic" href="../../03_Areas/AI/AI-MOC.md">
+            <span>AI</span>
+            <strong>模型、Agent、工具系统</strong>
+          </a>
+          <a class="topic" href="../../03_Areas/Agent_Memory/Agent-Memory-MOC.md">
+            <span>Memory</span>
+            <strong>长期记忆与个性化协作</strong>
+          </a>
+          <a class="topic" href="../../03_Areas/C_Language/C-Language-MOC.md">
+            <span>C</span>
+            <strong>底层语言与系统基础</strong>
+          </a>
+          <a class="topic" href="../../03_Areas/Philosophy/Philosophy-MOC.md">
+            <span>Philosophy</span>
+            <strong>审美目的论与现代性</strong>
+          </a>
+        </div>
+      </section>
+
+      <section class="section about" id="about">
+        <div>
+          <p class="eyebrow">About</p>
+          <h2>这个网站的定位</h2>
+        </div>
+        <p>
+          这不是一个只展示成果的主页，而是一个从 Obsidian Vault 生长出来的公开知识入口。
+          它适合持续更新：项目完成后沉淀架构与 devlog，学习结束后沉淀结构化笔记，
+          思考成熟后沉淀为长文或永久笔记。
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Cedric Notes</span>
+      <a href="https://github.com/RRRealCedric">github.com/RRRealCedric</a>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
