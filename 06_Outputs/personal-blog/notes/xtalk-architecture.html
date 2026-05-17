@@ -7,6 +7,16 @@
     <meta name="description" content="从 API、事件总线、Managers、Agent 和 Models 分层理解实时语音 Agent 系统。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   </head>
   <body class="note-page">
     <main class="note-main">
@@ -178,24 +188,122 @@
         <hr>
         <h3>核心架构详解</h3>
         <h4>1. API 入口层 (<code>api.py</code> → <code>Xtalk</code> 类)</h4>
-        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/api.py">api.py</a></p>
+        <p><code>api.py</code></p>
         <p><code>Xtalk</code> 是整个系统的高级接口：</p>
-        <p>| 方法 | 作用 | |------|------| | <code>from_config(path)</code> | 从 JSON 配置创建 Xtalk 实例 | | <code>connect(websocket)</code> | 接受 WebSocket 连接并启动会话 | | <code>register_model_search_spec(slot, spec)</code> | 注册自定义模型搜索路径 | | <code>embed_text(session_id, text)</code> | 向指定会话注入文本嵌入 | | <code>add_agent_tools(tools)</code> | 给 Agent 添加自定义工具 |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>方法</th>
+              <th>作用</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>from_config(path)</code></td>
+              <td>从 JSON 配置创建 Xtalk 实例</td>
+            </tr>
+            <tr>
+              <td><code>connect(websocket)</code></td>
+              <td>接受 WebSocket 连接并启动会话</td>
+            </tr>
+            <tr>
+              <td><code>register_model_search_spec(slot, spec)</code></td>
+              <td>注册自定义模型搜索路径</td>
+            </tr>
+            <tr>
+              <td><code>embed_text(session_id, text)</code></td>
+              <td>向指定会话注入文本嵌入</td>
+            </tr>
+            <tr>
+              <td><code>add_agent_tools(tools)</code></td>
+              <td>给 Agent 添加自定义工具</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <p><strong>模型注册表</strong> (<code>MODEL_REGISTRY</code>): 通过 slot name → import specs 映射，实现动态模型发现与加载。</p>
         <h4>2. 事件驱动核心 (<code>serving/</code>)</h4>
         <h5>EventBus</h5>
-        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/event_bus.py">event_bus.py</a></p>
+        <p><code>event_bus.py</code></p>
         <ul>
           <li>基于 <code>asyncio.create_task</code> 的异步事件分发</li>
           <li>支持优先级排序、错误隔离、事件历史追踪</li>
           <li>所有 Manager 通过 <code>subscribe</code> / <code>publish</code> 松耦合通信</li>
         </ul>
         <h5>事件类型 (~50+ 种)</h5>
-        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/events.py">events.py</a></p>
+        <p><code>events.py</code></p>
         <p>主要事件类别：</p>
-        <p>| 类别 | 关键事件 | 说明 | |------|----------|------| | <strong>Audio</strong> | <code>AudioFrameReceived</code>, <code>EnhancedAudioFrameReceived</code> | 音频帧输入 | | <strong>VAD</strong> | <code>VADSpeechStart</code>, <code>VADSpeechEnd</code> | 语音活动检测 | | <strong>ASR</strong> | <code>ASRResultPartial</code>, <code>ASRResultFinal</code>, <code>ASRStableSegmentReady</code> | 语音识别结果 | | <strong>LLM</strong> | <code>LLMAgentResponseUpdate</code>, <code>LLMAgentResponseFinish</code>, <code>LLMFirstChunk</code> | LLM 生成 | | <strong>TTS</strong> | <code>TTSStarted</code>, <code>TTSChunkGenerated</code>, <code>TTSFinished</code>, <code>TTSVoiceChange</code> | 语音合成 | | <strong>Turn</strong> | <code>TurnTTSStartRequested</code>, <code>TurnLLMAgentStartRequested</code> 等 | 轮次协调 | | <strong>Metrics</strong> | <code>LatencyMetricsUpdated</code> | 延迟监控 | | <strong>Speaker</strong> | <code>SpeakerRecognized</code> | 说话人识别 | | <strong>Caption</strong> | <code>CaptionUpdated</code>, <code>ThoughtUpdated</code> | 音频描述/思维链 | | <strong>Retrieval</strong> | <code>RetrievalUpdated</code>, <code>TextForEmbeddingReady</code> | RAG 检索 | | <strong>Switch</strong> | <code>TTSModelSwitchRequested</code>, <code>LLMModelSwitchRequested</code> | 运行时模型切换 |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>类别</th>
+              <th>关键事件</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Audio</strong></td>
+              <td><code>AudioFrameReceived</code>, <code>EnhancedAudioFrameReceived</code></td>
+              <td>音频帧输入</td>
+            </tr>
+            <tr>
+              <td><strong>VAD</strong></td>
+              <td><code>VADSpeechStart</code>, <code>VADSpeechEnd</code></td>
+              <td>语音活动检测</td>
+            </tr>
+            <tr>
+              <td><strong>ASR</strong></td>
+              <td><code>ASRResultPartial</code>, <code>ASRResultFinal</code>, <code>ASRStableSegmentReady</code></td>
+              <td>语音识别结果</td>
+            </tr>
+            <tr>
+              <td><strong>LLM</strong></td>
+              <td><code>LLMAgentResponseUpdate</code>, <code>LLMAgentResponseFinish</code>, <code>LLMFirstChunk</code></td>
+              <td>LLM 生成</td>
+            </tr>
+            <tr>
+              <td><strong>TTS</strong></td>
+              <td><code>TTSStarted</code>, <code>TTSChunkGenerated</code>, <code>TTSFinished</code>, <code>TTSVoiceChange</code></td>
+              <td>语音合成</td>
+            </tr>
+            <tr>
+              <td><strong>Turn</strong></td>
+              <td><code>TurnTTSStartRequested</code>, <code>TurnLLMAgentStartRequested</code> 等</td>
+              <td>轮次协调</td>
+            </tr>
+            <tr>
+              <td><strong>Metrics</strong></td>
+              <td><code>LatencyMetricsUpdated</code></td>
+              <td>延迟监控</td>
+            </tr>
+            <tr>
+              <td><strong>Speaker</strong></td>
+              <td><code>SpeakerRecognized</code></td>
+              <td>说话人识别</td>
+            </tr>
+            <tr>
+              <td><strong>Caption</strong></td>
+              <td><code>CaptionUpdated</code>, <code>ThoughtUpdated</code></td>
+              <td>音频描述/思维链</td>
+            </tr>
+            <tr>
+              <td><strong>Retrieval</strong></td>
+              <td><code>RetrievalUpdated</code>, <code>TextForEmbeddingReady</code></td>
+              <td>RAG 检索</td>
+            </tr>
+            <tr>
+              <td><strong>Switch</strong></td>
+              <td><code>TTSModelSwitchRequested</code>, <code>LLMModelSwitchRequested</code></td>
+              <td>运行时模型切换</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <h5>Manager 基类与事件绑定</h5>
-        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/interfaces.py">interfaces.py</a></p>
+        <p><code>interfaces.py</code></p>
         <ul>
           <li><code>Manager</code> = <code>EventListenerMixin</code> + <code>ShutdownMixin</code></li>
           <li>使用 <code>@Manager.event_handler(EventType)</code> 装饰器声明式绑定事件处理</li>
@@ -203,7 +311,7 @@
           <li>支持运行时 <code>subscribe_event</code> / <code>unsubscribe_event</code> 进行事件路由重写</li>
         </ul>
         <h4>3. Service 层</h4>
-        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/serving/service.py">service.py</a></p>
+        <p><code>service.py</code></p>
         <ul>
           <li>每个 WebSocket 会话 = 一个 <code>Service</code> 实例</li>
           <li><code>Service</code> 创建 <code>EventBus</code> + <code>InputGateway</code> + <code>OutputGateway</code> + 12 个 <code>Manager</code></li>
@@ -212,9 +320,81 @@
           <li>支持 Prototype 模式 (clone) 复制会话</li>
         </ul>
         <h4>4. Pipeline 层 (模型容器)</h4>
-        <p><a href="file:///Users/cedric/Documents/Core/02_Projects/xtalk_agent/xtalk/src/xtalk/pipelines/default.py">default.py</a></p>
+        <p><code>default.py</code></p>
         <p><code>DefaultPipeline</code> 是一个 dataclass，作为所有模型实例的容器：</p>
-        <p>| 字段 | 模型类型 | 必需 | |------|----------|------| | <code>asr_model</code> | ASR | ✅ | | <code>llm_agent</code> | Agent | ✅ | | <code>tts_model</code> | TTS | ✅ | | <code>captioner_model</code> | Captioner | ❌ | | <code>punt_restorer_model</code> | PuntRestorer | ❌ | | <code>caption_rewriter</code> | Rewriter | ❌ | | <code>thought_rewriter</code> | Rewriter | ❌ | | <code>vad_model</code> | VAD | ❌ | | <code>enhancer_model</code> | SpeechEnhancer | ❌ | | <code>speaker_encoder</code> | SpeakerEncoder | ❌ | | <code>_speed_controller</code> | SpeechSpeedController | ❌ | | <code>embeddings_model</code> | Embeddings | ❌ |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>字段</th>
+              <th>模型类型</th>
+              <th>必需</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>asr_model</code></td>
+              <td>ASR</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td><code>llm_agent</code></td>
+              <td>Agent</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td><code>tts_model</code></td>
+              <td>TTS</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td><code>captioner_model</code></td>
+              <td>Captioner</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>punt_restorer_model</code></td>
+              <td>PuntRestorer</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>caption_rewriter</code></td>
+              <td>Rewriter</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>thought_rewriter</code></td>
+              <td>Rewriter</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>vad_model</code></td>
+              <td>VAD</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>enhancer_model</code></td>
+              <td>SpeechEnhancer</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>speaker_encoder</code></td>
+              <td>SpeakerEncoder</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>_speed_controller</code></td>
+              <td>SpeechSpeedController</td>
+              <td>❌</td>
+            </tr>
+            <tr>
+              <td><code>embeddings_model</code></td>
+              <td>Embeddings</td>
+              <td>❌</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <ul>
           <li>通过 <code>clone()</code> 为每个会话创建隔离的模型副本</li>
           <li>字段 metadata 的 <code>clone: True</code> 标记哪些模型需要独立状态</li>
@@ -222,13 +402,98 @@
         <h4>5. 模型接口层 (<code>speech/interfaces.py</code>, <code>llm_agent/interfaces.py</code>)</h4>
         <p>所有模型都通过<strong>抽象接口</strong>定义契约：</p>
         <h5>ASR 接口</h5>
-        <p>| 方法 | 说明 | |------|------| | <code>recognize(audio: bytes) → str</code> | 单次识别 (必须实现) | | <code>recognize_stream(audio, is_final) → str</code> | 流式增量识别 (有默认实现) | | <code>reset()</code> | 重置状态 | | <code>clone()</code> | 克隆实例 |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>方法</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>recognize(audio: bytes) → str</code></td>
+              <td>单次识别 (必须实现)</td>
+            </tr>
+            <tr>
+              <td><code>recognize_stream(audio, is_final) → str</code></td>
+              <td>流式增量识别 (有默认实现)</td>
+            </tr>
+            <tr>
+              <td><code>reset()</code></td>
+              <td>重置状态</td>
+            </tr>
+            <tr>
+              <td><code>clone()</code></td>
+              <td>克隆实例</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <blockquote>输入: PCM 16-bit mono 16kHz raw bytes</blockquote>
         <h5>TTS 接口</h5>
-        <p>| 方法 | 说明 | |------|------| | <code>synthesize(text) → bytes</code> | 文本转语音 (必须实现) | | <code>synthesize_stream(text) → Iterable[bytes]</code> | 流式合成 (可选) | | <code>set_voice(voice_names)</code> | 切换说话人 | | <code>set_emotion(emotion)</code> | 切换情感 | | <code>clone()</code> | 克隆实例 |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>方法</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>synthesize(text) → bytes</code></td>
+              <td>文本转语音 (必须实现)</td>
+            </tr>
+            <tr>
+              <td><code>synthesize_stream(text) → Iterable[bytes]</code></td>
+              <td>流式合成 (可选)</td>
+            </tr>
+            <tr>
+              <td><code>set_voice(voice_names)</code></td>
+              <td>切换说话人</td>
+            </tr>
+            <tr>
+              <td><code>set_emotion(emotion)</code></td>
+              <td>切换情感</td>
+            </tr>
+            <tr>
+              <td><code>clone()</code></td>
+              <td>克隆实例</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <blockquote>输出: PCM 16-bit mono 48kHz raw bytes</blockquote>
         <h5>Agent 接口</h5>
-        <p>| 方法 | 说明 | |------|------| | <code>generate(input) → str \| (str, ToolCall[])</code> | 完整生成 | | <code>generate_stream(input) → Iterable[str \| ToolCall]</code> | 流式生成 | | <code>clone()</code> | 克隆实例 | | <code>add_tools(tools)</code> | 添加 Langchain 工具 |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>方法</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>`generate(input) → str \</td>
+              <td>(str, ToolCall[])`</td>
+            </tr>
+            <tr>
+              <td>`generate_stream(input) → Iterable[str \</td>
+              <td>ToolCall]`</td>
+            </tr>
+            <tr>
+              <td><code>clone()</code></td>
+              <td>克隆实例</td>
+            </tr>
+            <tr>
+              <td><code>add_tools(tools)</code></td>
+              <td>添加 Langchain 工具</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <blockquote>输入支持 <code>str</code> 或 <code>AgentInput(content, context)</code></blockquote>
         <hr>
         <h3>核心数据流</h3>
@@ -271,7 +536,64 @@
         }</code></pre>
         <hr>
         <h3>已支持模型一览</h3>
-        <p>| Slot | 模型 | 部署方式 | |------|------|----------| | <strong>asr</strong> | SherpaOnnxASR, Qwen3ASRFlashRealtime, Zipformer, ElevenLabs, SenseVoiceSmallLocal, ParaformerLocal | API / 本地 | | <strong>tts</strong> | IndexTTS, IndexTTS2, GPT-SoVITS, CosyVoice, CosyVoiceLocal, ElevenLabs, EdgeTTS | API / 本地 | | <strong>llm_agent</strong> | DefaultAgent (任意 OpenAI 兼容模型), DummyAgent | API / 本地 | | <strong>vad</strong> | SileroVAD, 前端 VAD | 本地 | | <strong>captioner</strong> | Qwen3OmniCaptioner | API | | <strong>speaker_encoder</strong> | PyannoteSpeakerEncoder | 本地 | | <strong>speech_enhancer</strong> | FastEnhancer (ONNX) | 本地 | | <strong>rewriter</strong> | DefaultCaptionRewriter, DefaultThoughtRewriter | API | | <strong>embeddings</strong> | OpenAIEmbeddings | API |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Slot</th>
+              <th>模型</th>
+              <th>部署方式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>asr</strong></td>
+              <td>SherpaOnnxASR, Qwen3ASRFlashRealtime, Zipformer, ElevenLabs, SenseVoiceSmallLocal, ParaformerLocal</td>
+              <td>API / 本地</td>
+            </tr>
+            <tr>
+              <td><strong>tts</strong></td>
+              <td>IndexTTS, IndexTTS2, GPT-SoVITS, CosyVoice, CosyVoiceLocal, ElevenLabs, EdgeTTS</td>
+              <td>API / 本地</td>
+            </tr>
+            <tr>
+              <td><strong>llm_agent</strong></td>
+              <td>DefaultAgent (任意 OpenAI 兼容模型), DummyAgent</td>
+              <td>API / 本地</td>
+            </tr>
+            <tr>
+              <td><strong>vad</strong></td>
+              <td>SileroVAD, 前端 VAD</td>
+              <td>本地</td>
+            </tr>
+            <tr>
+              <td><strong>captioner</strong></td>
+              <td>Qwen3OmniCaptioner</td>
+              <td>API</td>
+            </tr>
+            <tr>
+              <td><strong>speaker_encoder</strong></td>
+              <td>PyannoteSpeakerEncoder</td>
+              <td>本地</td>
+            </tr>
+            <tr>
+              <td><strong>speech_enhancer</strong></td>
+              <td>FastEnhancer (ONNX)</td>
+              <td>本地</td>
+            </tr>
+            <tr>
+              <td><strong>rewriter</strong></td>
+              <td>DefaultCaptionRewriter, DefaultThoughtRewriter</td>
+              <td>API</td>
+            </tr>
+            <tr>
+              <td><strong>embeddings</strong></td>
+              <td>OpenAIEmbeddings</td>
+              <td>API</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <hr>
         <h3>技术栈</h3>
         <ul>

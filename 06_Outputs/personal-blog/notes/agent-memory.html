@@ -7,6 +7,16 @@
     <meta name="description" content="为语音 Agent 设计跨会话记忆：用户画像、偏好、项目状态、显式记忆、检索注入与调试 API。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   </head>
   <body class="note-page">
     <main class="note-main">
@@ -41,7 +51,49 @@
         负责从多轮语音交互中抽取、组织、更新、检索和遗忘用户相关记忆，
         并通过事件机制把相关记忆注入 LLM Agent，使系统具备跨会话个性化和经验积累能力。</code></pre>
         <p>它和普通 RAG 的区别是：</p>
-        <p>| 能力   | Document RAG      | xtalk-memory                                         | | ---- | ----------------- | ---------------------------------------------------- | | 信息来源 | 用户上传文档            | 对话、工具调用、偏好、任务状态、失败经验                                 | | 生命周期 | 多数是静态文档           | 动态变化、可更新、可遗忘                                         | | 结构   | chunk + embedding | semantic / episodic / procedural / reflective memory | | 目标   | 回答文档相关问题          | 让 Agent 变得更了解用户、更会做事                                 | | 更新方式 | 用户上传或重建索引         | 自动抽取、合并、反思、冲突解决                                      | | 自进化  | 弱                 | 强                                                    |</p>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>能力</th>
+              <th>Document RAG</th>
+              <th>xtalk-memory</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>信息来源</td>
+              <td>用户上传文档</td>
+              <td>对话、工具调用、偏好、任务状态、失败经验</td>
+            </tr>
+            <tr>
+              <td>生命周期</td>
+              <td>多数是静态文档</td>
+              <td>动态变化、可更新、可遗忘</td>
+            </tr>
+            <tr>
+              <td>结构</td>
+              <td>chunk + embedding</td>
+              <td>semantic / episodic / procedural / reflective memory</td>
+            </tr>
+            <tr>
+              <td>目标</td>
+              <td>回答文档相关问题</td>
+              <td>让 Agent 变得更了解用户、更会做事</td>
+            </tr>
+            <tr>
+              <td>更新方式</td>
+              <td>用户上传或重建索引</td>
+              <td>自动抽取、合并、反思、冲突解决</td>
+            </tr>
+            <tr>
+              <td>自进化</td>
+              <td>弱</td>
+              <td>强</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
         <hr>
         <h2>2. 总体架构设计</h2>
         <p>建议新增一个独立模块：</p>

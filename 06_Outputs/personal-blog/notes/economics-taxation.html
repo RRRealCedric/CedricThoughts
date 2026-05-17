@@ -7,6 +7,16 @@
     <meta name="description" content="税收经济学资源笔记，适合作为财政、激励与制度分析的学习入口。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   </head>
   <body class="note-page">
     <main class="note-main">
@@ -902,7 +912,9 @@
         <ol>
           <li><strong>GDP平减指数（粗紫线）：</strong> 这是理解本图的核心。如右上角图例所示，其计算公式为：</li>
         </ol>
-        <p>$$GDP平减指数 = \frac{名义GDP}{实际GDP}$$</p>
+        <div class="math-block">\[
+        GDP平减指数 = \frac{名义GDP}{实际GDP}
+        \]</div>
         <p>与CPI不同，GDP平减指数涵盖了经济体中所有最终产品和服务的价格变动，是衡量<strong>全面通货膨胀</strong>最准确、最宏观的指标。观察粗紫线在红圈内的走势，它从60年代的低位（2%左右）狂飙突进，在1974年和1980年前后两次突破10%的骇人高位（对应两次中东石油危机）。</p>
         <p><strong>图表结论：</strong> 在1970年代，代表物价的紫线不断创新高，而代表经济增长的细线却反复陷入衰退的深渊。这种“高通胀”与“高失业/经济停滞”并存的现象，在传统的凯恩斯主义理论中是不可能发生的（违背了菲利普斯曲线），这就是<strong>滞胀</strong>。</p>
         <hr>

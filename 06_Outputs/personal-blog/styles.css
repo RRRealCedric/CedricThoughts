@@ -446,6 +446,13 @@ h3 {
   font-size: 18px;
 }
 
+.note-content a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .note-content ul,
 .note-content ol {
   padding-left: 22px;
@@ -472,6 +479,60 @@ h3 {
 .note-content pre code {
   padding: 0;
   background: transparent;
+}
+
+.note-content blockquote {
+  margin: 28px 0;
+  padding: 18px 22px;
+  color: #3f3f3a;
+  background: var(--surface-muted);
+  border-left: 3px solid var(--clay);
+  border-radius: 8px;
+}
+
+.note-content hr {
+  margin: 42px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 28px 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.note-content table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.note-content th,
+.note-content td {
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.note-content th {
+  color: var(--ink);
+  background: var(--surface-muted);
+  font-weight: 720;
+}
+
+.note-content tr:last-child td {
+  border-bottom: 0;
+}
+
+.math-block {
+  overflow-x: auto;
+  margin: 28px 0;
+  padding: 16px 0;
 }
 
 .note-grid {

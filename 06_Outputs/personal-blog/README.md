@@ -25,6 +25,7 @@
 ## Publish a Markdown Note
 
 使用发布脚本可以把 Vault 内的 Markdown 笔记完整转换成博客风格的 HTML 页面，并自动加入首页 Writing 列表。
+脚本支持常见 Markdown 结构，包括标题、段落、列表、代码块、引用、分隔线、表格、链接、基础强调语法，以及由 MathJax 渲染的 `$...$`、`$$...$$` 数学公式。
 
 示例：
 

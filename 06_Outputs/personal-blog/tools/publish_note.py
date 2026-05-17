@@ -135,10 +135,75 @@ def inline_markdown(text: str) -> str:
     escaped = html.escape(text)
     escaped = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", r'<img src="\2" alt="\1">', escaped)
     escaped = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', escaped)
+    escaped = re.sub(r'<a href="file://[^"]+">([^<]+)</a>', r"<code>\1</code>", escaped)
+    escaped = re.sub(r'<a href="/Users/[^"]+">([^<]+)</a>', r"<code>\1</code>", escaped)
     escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
     escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
     escaped = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", escaped)
     return escaped
+
+
+def is_table_separator(line: str) -> bool:
+    stripped = line.strip()
+    if "|" not in stripped:
+        return False
+    stripped = stripped.strip("|").strip()
+    if not stripped:
+        return False
+    cells = [cell.strip() for cell in stripped.split("|")]
+    return all(re.match(r"^:?-{3,}:?$", cell) for cell in cells)
+
+
+def split_table_row(line: str) -> list[str]:
+    stripped = line.strip().strip("|")
+    return [cell.strip() for cell in stripped.split("|")]
+
+
+def table_alignments(separator: str, width: int) -> list[str]:
+    cells = split_table_row(separator)
+    alignments: list[str] = []
+    for cell in cells[:width]:
+        left = cell.startswith(":")
+        right = cell.endswith(":")
+        if left and right:
+            alignments.append("center")
+        elif right:
+            alignments.append("right")
+        elif left:
+            alignments.append("left")
+        else:
+            alignments.append("")
+    while len(alignments) < width:
+        alignments.append("")
+    return alignments
+
+
+def render_table(header_line: str, separator_line: str, body_lines: list[str]) -> str:
+    headers = split_table_row(header_line)
+    alignments = table_alignments(separator_line, len(headers))
+    rows = [split_table_row(line) for line in body_lines]
+
+    output = ['<div class="table-wrap">', "<table>"]
+    output.append("  <thead>")
+    output.append("    <tr>")
+    for index, header in enumerate(headers):
+        style = f' style="text-align: {alignments[index]}"' if alignments[index] else ""
+        output.append(f"      <th{style}>{inline_markdown(header)}</th>")
+    output.append("    </tr>")
+    output.append("  </thead>")
+    if rows:
+        output.append("  <tbody>")
+        for row in rows:
+            output.append("    <tr>")
+            for index in range(len(headers)):
+                cell = row[index] if index < len(row) else ""
+                style = f' style="text-align: {alignments[index]}"' if alignments[index] else ""
+                output.append(f"      <td{style}>{inline_markdown(cell)}</td>")
+            output.append("    </tr>")
+        output.append("  </tbody>")
+    output.append("</table>")
+    output.append("</div>")
+    return "\n".join(output)
 
 
 def flush_paragraph(parts: list[str], output: list[str]) -> None:
@@ -167,8 +232,12 @@ def markdown_to_html(markdown: str) -> str:
     in_code = False
     code_lang = ""
     code_lines: list[str] = []
+    in_math = False
+    math_lines: list[str] = []
+    index = 0
 
-    for raw_line in lines:
+    while index < len(lines):
+        raw_line = lines[index]
         line = raw_line.rstrip()
 
         fence = re.match(r"^```(\w+)?\s*$", line)
@@ -184,15 +253,58 @@ def markdown_to_html(markdown: str) -> str:
                 flush_list(list_items, output, list_ordered)
                 code_lang = fence.group(1) or ""
                 in_code = True
+            index += 1
             continue
 
         if in_code:
             code_lines.append(line)
+            index += 1
+            continue
+
+        single_line_math = re.match(r"^\s*\$\$(.+?)\$\$\s*$", line)
+        if single_line_math:
+            flush_paragraph(paragraph, output)
+            flush_list(list_items, output, list_ordered)
+            output.append(
+                '<div class="math-block">\\[\n'
+                + html.escape(single_line_math.group(1).strip())
+                + "\n\\]</div>"
+            )
+            index += 1
+            continue
+
+        if line.strip() == "$$":
+            if in_math:
+                output.append('<div class="math-block">\\[\n' + html.escape("\n".join(math_lines)) + "\n\\]</div>")
+                math_lines = []
+                in_math = False
+            else:
+                flush_paragraph(paragraph, output)
+                flush_list(list_items, output, list_ordered)
+                in_math = True
+            index += 1
+            continue
+
+        if in_math:
+            math_lines.append(line)
+            index += 1
             continue
 
         if not line.strip():
             flush_paragraph(paragraph, output)
             flush_list(list_items, output, list_ordered)
+            index += 1
+            continue
+
+        if index + 1 < len(lines) and "|" in line and is_table_separator(lines[index + 1]):
+            flush_paragraph(paragraph, output)
+            flush_list(list_items, output, list_ordered)
+            body_lines: list[str] = []
+            index += 2
+            while index < len(lines) and "|" in lines[index].strip() and lines[index].strip():
+                body_lines.append(lines[index].rstrip())
+                index += 1
+            output.append(render_table(line, lines[index - len(body_lines) - 1], body_lines))
             continue
 
         heading = re.match(r"^(#{1,6})\s+(.+)$", line)
@@ -201,12 +313,14 @@ def markdown_to_html(markdown: str) -> str:
             flush_list(list_items, output, list_ordered)
             level = min(len(heading.group(1)) + 1, 6)
             output.append(f"<h{level}>{inline_markdown(heading.group(2).strip())}</h{level}>")
+            index += 1
             continue
 
         if re.match(r"^\s*(-{3,}|\*{3,}|_{3,})\s*$", line):
             flush_paragraph(paragraph, output)
             flush_list(list_items, output, list_ordered)
             output.append("<hr>")
+            index += 1
             continue
 
         quote = re.match(r"^>\s?(.*)$", line)
@@ -214,6 +328,7 @@ def markdown_to_html(markdown: str) -> str:
             flush_paragraph(paragraph, output)
             flush_list(list_items, output, list_ordered)
             output.append(f"<blockquote>{inline_markdown(quote.group(1))}</blockquote>")
+            index += 1
             continue
 
         unordered = re.match(r"^\s*[-*+]\s+(.+)$", line)
@@ -225,14 +340,18 @@ def markdown_to_html(markdown: str) -> str:
                 flush_list(list_items, output, list_ordered)
             list_ordered = current_ordered
             list_items.append((ordered or unordered).group(1).strip())
+            index += 1
             continue
 
         flush_list(list_items, output, list_ordered)
         paragraph.append(line.strip())
+        index += 1
 
     if in_code:
         language = f' class="language-{html.escape(code_lang)}"' if code_lang else ""
         output.append(f"<pre><code{language}>{html.escape(chr(10).join(code_lines))}</code></pre>")
+    if in_math:
+        output.append('<div class="math-block">\\[\n' + html.escape("\n".join(math_lines)) + "\n\\]</div>")
     flush_paragraph(paragraph, output)
     flush_list(list_items, output, list_ordered)
     return "\n".join(output)
@@ -251,6 +370,16 @@ def render_article(metadata: NoteMetadata, body_html: str) -> str:
     <meta name="description" content="{description}">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {{
+        tex: {{
+          inlineMath: [["$", "$"], ["\\\\(", "\\\\)"]],
+          displayMath: [["$$", "$$"], ["\\\\[", "\\\\]"]]
+        }},
+        svg: {{ fontCache: "global" }}
+      }};
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   </head>
   <body class="note-page">
     <main class="note-main">

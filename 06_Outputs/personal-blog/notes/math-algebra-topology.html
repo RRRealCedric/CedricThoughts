@@ -7,6 +7,16 @@
     <meta name="description" content="线性代数与多项式学习笔记。">
     <link rel="stylesheet" href="../styles.css">
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+        },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   </head>
   <body class="note-page">
     <main class="note-main">
@@ -176,7 +186,9 @@
         <ul>
           <li><strong>严格表述</strong>：对于任意 $P \in \mathbb{K}_n[X]$ 和任意 $a \in \mathbb{K}$，存在唯一的展开式：</li>
         </ul>
-        <p>$$P(X) = \sum_{k=0}^{n} \frac{P^{(k)}(a)}{k!} (X-a)^k$$</p>
+        <div class="math-block">\[
+        P(X) = \sum_{k=0}^{n} \frac{P^{(k)}(a)}{k!} (X-a)^k
+        \]</div>
         <ul>
           <li><strong>线性代数视角的重新翻译</strong>：</li>
         </ul>
@@ -389,13 +401,17 @@
         </ul>
         <p>设 $P \in \mathbb{K}[X]$ 为非零多项式，$\alpha \in \mathbb{K}$ 且 $m \in \mathbb{N}^*$。</p>
         <p>我们称 $\alpha$ 是多项式 $P$ 的 <strong>$m$ 重根 (racine de multiplicité $m$)</strong>，当且仅当满足物理极限的夹逼条件：</p>
-        <p>$$(X - \alpha)^m \ | \ P \quad \text{且} \quad (X - \alpha)^{m+1} \nmid P$$</p>
+        <div class="math-block">\[
+        (X - \alpha)^m \ | \ P \quad \text{且} \quad (X - \alpha)^{m+1} \nmid P
+        \]</div>
         <p>_(专家的底线：它必须包含 $m$ 个质因式 $(X-\alpha)$，且绝不能包含第 $m+1$ 个。)_</p>
         <ul>
           <li><strong>Proposition（重根的代数结构等价 / Caractérisation algébrique）</strong>：</li>
         </ul>
         <p>$\alpha$ 是 $P$ 的 $m$ 重根 $\iff$ 必然存在一个多项式 $Q \in \mathbb{K}[X]$ 使得：</p>
-        <p>$$P(X) = (X - \alpha)^m Q(X) \quad \text{且} \quad Q(\alpha) \neq 0$$</p>
+        <div class="math-block">\[
+        P(X) = (X - \alpha)^m Q(X) \quad \text{且} \quad Q(\alpha) \neq 0
+        \]</div>
         <p>_(这正是后续用导数进行降阶证明时，最频繁调用的底层结构。$Q(\alpha) \neq 0$ 保证了因式 $(X-\alpha)$ 被彻底榨干。)_</p>
         <p><strong>多个重根的全局整除性</strong></p>
         <ul>
@@ -403,13 +419,17 @@
         </ul>
         <p>设 $\alpha_1, \alpha_2, \dots, \alpha_r$ 是多项式 $P$ 的 $r$ 个<strong>互不相同</strong>的根，且它们各自的重数分别为 $m_1, m_2, \dots, m_r$。</p>
         <p>由于对于 $i \neq j$，多项式 $(X - \alpha_i)^{m_i}$ 与 $(X - \alpha_j)^{m_j}$ 是绝对互素的，根据高斯定理（或互素多项式的整除性质），它们的连乘积必然整除 $P$：</p>
-        <p>$$\prod_{k=1}^r (X - \alpha_k)^{m_k} \ \Big| \ P$$</p>
+        <div class="math-block">\[
+        \prod_{k=1}^r (X - \alpha_k)^{m_k} \ \Big| \ P
+        \]</div>
         <p><strong>次数对重数的绝对压制</strong></p>
         <ul>
           <li><strong>Corollaire（根的重数总和的物理上限 / Majoration de la somme des multiplicités）</strong>：</li>
         </ul>
         <p>设 $P \in \mathbb{K}[X]$ 是一个<strong>非零</strong>多项式。其所有相异根的重数之和，绝对不可能超过该多项式的次数：</p>
-        <p>$$\sum_{k=1}^r m_k \le \deg(P)$$</p>
+        <div class="math-block">\[
+        \sum_{k=1}^r m_k \le \deg(P)
+        \]</div>
         <p>_(这一推论是连接前置单根理论与后续完全裂解理论（Proposition 30）的核心枢纽。当且仅当这个不等式取等号时，多项式达到“完全裂解”的终极形态。)_</p>
         <hr>
         <h4>第一阶段：探测工具的打造（形式导数与泰勒公式）</h4>
@@ -431,7 +451,9 @@
           <li><strong>Proposition 36: Formule de Leibniz（莱布尼茨公式）</strong>：</li>
         </ul>
         <p>设 $P, Q \in \mathbb{K}[X]$。对于任意 $n \in \mathbb{N}$，有：</p>
-        <p>$$(PQ)^{(n)} = \sum_{k=0}^n \binom{n}{k} P^{(k)} Q^{(n-k)}$$</p>
+        <div class="math-block">\[
+        (PQ)^{(n)} = \sum_{k=0}^n \binom{n}{k} P^{(k)} Q^{(n-k)}
+        \]</div>
         <ul>
           <li><strong>Proposition 34（求导的降阶性质）</strong>：</li>
         </ul>
@@ -447,7 +469,9 @@
           <li><strong>Proposition 37: Formule de Taylor（泰勒公式）</strong>：</li>
         </ul>
         <p>设 $P \in \mathbb{K}[X]$ 是一个次数为 $d$ 的多项式，且 $n \in \mathbb{N}$ 满足 $d \le n$。那么对于所有的 $a \in \mathbb{K}$，有：</p>
-        <p>$$P = P(a) + P&#x27;(a)(X - a) + \frac{P&#x27;&#x27;(a)}{2!}(X - a)^2 + \dots + \frac{P^{(n)}(a)}{n!}(X - a)^n = \sum_{k=0}^n \frac{P^{(k)}(a)}{k!} (X - a)^k$$</p>
+        <div class="math-block">\[
+        P = P(a) + P&#x27;(a)(X - a) + \frac{P&#x27;&#x27;(a)}{2!}(X - a)^2 + \dots + \frac{P^{(n)}(a)}{n!}(X - a)^n = \sum_{k=0}^n \frac{P^{(k)}(a)}{k!} (X - a)^k
+        \]</div>
         <hr>
         <h4>第二阶段：结构与数值的桥梁（重根理论）</h4>
         <h5><strong>1. 降维等价（核心定理）</strong></h5>
@@ -484,7 +508,9 @@
           <li><strong>Proposition 31: Relations coefficients-racines（系数与根的关系 / 韦达定理）</strong>：</li>
         </ul>
         <p>设 $P = \sum_{k=0}^n a_k X^k$ 是一个 $n$ 次完全裂解多项式，其根为 $\alpha_1, \dots, \alpha_n$（按重数计）。则有：</p>
-        <p>$$\frac{a_{n-1}}{a_n} = -(\alpha_1 + \dots + \alpha_n) \quad \text{且} \quad \frac{a_0}{a_n} = (-1)^n(\alpha_1 \times \dots \times \alpha_n)$$</p>
+        <div class="math-block">\[
+        \frac{a_{n-1}}{a_n} = -(\alpha_1 + \dots + \alpha_n) \quad \text{且} \quad \frac{a_0}{a_n} = (-1)^n(\alpha_1 \times \dots \times \alpha_n)
+        \]</div>
         <hr>
         <h4>第三阶段：代数世界的“素数”（不可约多项式与互素）</h4>
         <h5><strong>1. 不可约多项式（Irréductible）</strong></h5>
@@ -528,7 +554,9 @@
           <li><strong>Proposition 44（$\mathbb{R}[X]$ 中的绝对因式分解定理）</strong>：</li>
         </ul>
         <p>设 $P \in \mathbb{R}[X]$。存在自然数 $r, s \in \mathbb{N}$，标量 $\lambda \in \mathbb{R}$，实根 $\alpha_1, \dots, \alpha_r \in \mathbb{R}$ 以及实系数对 $(b_1, c_1), \dots, (b_s, c_s) \in \mathbb{R}^2$ 使得：</p>
-        <p>$$P = \lambda \prod_{k=1}^r (X - \alpha_k)^{m_k} \prod_{l=1}^s (X^2 + b_l X + c_l)^{n_l}$$</p>
+        <div class="math-block">\[
+        P = \lambda \prod_{k=1}^r (X - \alpha_k)^{m_k} \prod_{l=1}^s (X^2 + b_l X + c_l)^{n_l}
+        \]</div>
         <p>这就是 $P$ 在 $\mathbb{R}[X]$ 中的不可约因式分解。</p>
         <ul>
           <li><strong>在 $\mathbb{R}[X]$ 中分解的标准操作方法</strong>：</li>
