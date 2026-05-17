@@ -1,6 +1,6 @@
 # Personal Blog Website
 
-这是从当前 Obsidian Vault 生成的个人博客静态站点草稿。
+这是从当前 Obsidian Vault 生成的个人博客静态站点，用于公开展示项目、学习研究和思考输出。
 
 ## Files
 
@@ -12,6 +12,8 @@
 ## Usage
 
 直接在浏览器中打开 `index.html` 即可预览。
+
+如果发布到 GitHub Pages，可以把 Pages source 设置为 `main` 分支的仓库根目录。根目录的 `index.html` 会自动跳转到本博客页面。
 
 ## Update Workflow
 

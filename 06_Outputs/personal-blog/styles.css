@@ -143,6 +143,14 @@ h3 {
   font-size: 20px;
 }
 
+.motto-translation {
+  margin: -10px 0 24px;
+  color: var(--clay);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.1;
+}
+
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
