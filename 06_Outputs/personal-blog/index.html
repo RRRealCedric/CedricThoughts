@@ -24,7 +24,6 @@
       <nav class="nav" aria-label="Primary navigation">
         <a href="#projects">Projects</a>
         <a href="#writing">Writing</a>
-        <a href="#collections">Collections</a>
         <a href="#learning">Learning</a>
         <a href="#about">About</a>
       </nav>
@@ -70,33 +69,39 @@
 
       <section class="section split" id="projects">
         <div class="section-heading">
-          <p class="eyebrow">Selected projects</p>
+          <p class="eyebrow">Projects</p>
           <h2>工程不是代码堆积，而是把复杂系统变得可运行、可解释、可复盘。</h2>
         </div>
-        <div class="feature-grid">
-          <article class="feature-card strong">
-            <p class="card-label">Voice Agent</p>
-            <h3>X-Talk</h3>
-            <p>
-              一个全双工级联式语音对话系统框架，关注实时交互、事件驱动架构、模型可替换性与长期记忆能力。
-            </p>
-            <a href="./notes/xtalk-architecture.html">查看架构笔记</a>
+        <div class="section-subnav" aria-label="Project categories">
+          <a href="./collections/projects.html">All Projects</a>
+          <a href="./notes/xtalk-architecture.html">X-Talk / 架构分析</a>
+          <a href="./notes/agent-memory.html">X-Talk / 长期记忆</a>
+          <a href="./notes/git-workflow.html">工程工作流</a>
+        </div>
+        <div class="post-list" id="projectList">
+          <article class="post-row">
+            <div>
+              <p class="post-meta">X-Talk / Architecture</p>
+              <h3>X-Talk 系统架构分析</h3>
+              <p>从 API、事件总线、Managers、Agent 和 Models 分层理解实时语音 Agent 系统。</p>
+            </div>
+            <a href="./notes/xtalk-architecture.html">Open</a>
           </article>
-          <article class="feature-card">
-            <p class="card-label">Agent Memory</p>
-            <h3>长期记忆系统</h3>
-            <p>
-              为语音 Agent 设计跨会话记忆：用户画像、偏好、项目状态、显式记忆、检索注入与调试 API。
-            </p>
-            <a href="./notes/agent-memory.html">查看记忆计划</a>
+          <article class="post-row">
+            <div>
+              <p class="post-meta">X-Talk / Memory</p>
+              <h3>长期记忆系统</h3>
+              <p>为语音 Agent 设计跨会话记忆：用户画像、偏好、项目状态、显式记忆、检索注入与调试 API。</p>
+            </div>
+            <a href="./notes/agent-memory.html">Open</a>
           </article>
-          <article class="feature-card">
-            <p class="card-label">Workflow</p>
-            <h3>Mac - Server - GitHub</h3>
-            <p>
-              本地 Mac 负责 AI agent 编码，服务器负责测试训练，GitHub 负责协作与版本事实源。
-            </p>
-            <a href="./notes/git-workflow.html">查看工作流</a>
+          <article class="post-row">
+            <div>
+              <p class="post-meta">Workflow</p>
+              <h3>Mac 本地开发 - 服务器测试 - GitHub 协作工程指南</h3>
+              <p>定义本地开发、远端验证和多人协作之间的责任边界与闭环。</p>
+            </div>
+            <a href="./notes/git-workflow.html">Open</a>
           </article>
         </div>
       </section>
@@ -104,50 +109,59 @@
       <section class="section writing-section" id="writing">
         <div class="section-heading compact">
           <p class="eyebrow">Writing</p>
-          <h2>最新可公开整理的笔记</h2>
+          <h2>哲学写作与长期思考</h2>
         </div>
-        <div class="toolbar" aria-label="Article filters">
-          <button class="filter-button is-active" data-filter="all" type="button">All</button>
-          <button class="filter-button" data-filter="project" type="button">Projects</button>
-          <button class="filter-button" data-filter="philosophy" type="button">Philosophy</button>
-          <button class="filter-button" data-filter="learning" type="button">Learning</button>
+        <div class="section-subnav" aria-label="Writing categories">
+          <a href="./collections/philosophy.html">All Writing</a>
+          <a href="./notes/aesthetic-teleology.html">审美目的论</a>
+          <a href="./collections/philosophy.html#marxism">马克思主义（待增）</a>
         </div>
-        <div class="post-list" id="postList">
-          <article class="post-row" data-category="project">
+        <div class="post-list" id="writingList">
+          <article class="post-row" data-category="writing">
             <div>
-              <p class="post-meta">Project Note</p>
-              <h3>X-Talk 系统架构分析</h3>
-              <p>从 API、事件总线、Managers、Agent 和 Models 分层理解实时语音 Agent 系统。</p>
-            </div>
-            <a href="./notes/xtalk-architecture.html">Open</a>
-          </article>
-          <article class="post-row" data-category="project">
-            <div>
-              <p class="post-meta">Engineering</p>
-              <h3>Mac 本地开发 - 服务器测试 - GitHub 协作工程指南</h3>
-              <p>定义本地开发、远端验证和多人协作之间的责任边界与闭环。</p>
-            </div>
-            <a href="./notes/git-workflow.html">Open</a>
-          </article>
-          <article class="post-row" data-category="philosophy">
-            <div>
-              <p class="post-meta">Philosophy</p>
+              <p class="post-meta">审美目的论</p>
               <h3>美作为终极解释</h3>
               <p>关于主体、承认、世界生成与审美目的论的一篇系统性长文。</p>
             </div>
             <a href="./notes/aesthetic-teleology.html">Open</a>
           </article>
-          <article class="post-row" data-category="philosophy">
+          <article class="post-row" data-category="writing">
             <div>
-              <p class="post-meta">Philosophy</p>
+              <p class="post-meta">审美目的论</p>
               <h3>审美目的论的实践论</h3>
               <p>把审美目的论从形而上学问题推进到实践、选择与生活形式。</p>
             </div>
             <a href="./notes/aesthetic-practice.html">Open</a>
           </article>
+        </div>
+      </section>
+
+      <section class="section learning" id="learning">
+        <div class="section-heading">
+          <p class="eyebrow">Learning</p>
+          <h2>数学、经济学、C 语言与其他学习笔记</h2>
+        </div>
+        <div class="folder-grid" aria-label="Learning categories">
+          <a class="folder-card" href="./collections/mathematics.html">
+            <span>Mathematics</span>
+            <strong>数学</strong>
+            <p>代数学、分析学与拓扑相关课程笔记。</p>
+          </a>
+          <a class="folder-card" href="./notes/economics-taxation.html">
+            <span>Economics</span>
+            <strong>经济学</strong>
+            <p>税收、财政、制度与激励结构。</p>
+          </a>
+          <a class="folder-card" href="./notes/c-language-map.html">
+            <span>Systems</span>
+            <strong>C 语言</strong>
+            <p>底层语言、内存模型、编译链接和系统基础。</p>
+          </a>
+        </div>
+        <div class="post-list learning-list" id="learningList">
           <article class="post-row" data-category="learning">
             <div>
-              <p class="post-meta">Economy</p>
+              <p class="post-meta">经济学</p>
               <h3>The Economics of Taxation</h3>
               <p>税收经济学资源笔记，适合作为财政、激励与制度分析的学习入口。</p>
             </div>
@@ -155,61 +169,12 @@
           </article>
           <article class="post-row" data-category="learning">
             <div>
-              <p class="post-meta">Mathematics</p>
-              <h3>Algèbre 与 Topologie 学习笔记</h3>
-              <p>线性代数、endomorphismes、赋范空间、连续性与可微性等课程笔记。</p>
+              <p class="post-meta">数学 / 代数学</p>
+              <h3>Algèbre Ch1 Polynôme</h3>
+              <p>线性代数与多项式学习笔记。</p>
             </div>
             <a href="./notes/math-algebra-topology.html">Open</a>
           </article>
-        </div>
-      </section>
-
-      <section class="section collections-section" id="collections">
-        <div class="section-heading">
-          <p class="eyebrow">Collections</p>
-          <h2>像文件夹一样浏览主题</h2>
-        </div>
-        <div class="collection-grid">
-          <a class="collection-card" href="./collections/mathematics.html">
-            <span>Learning</span>
-            <strong>数学</strong>
-            <p>代数学、分析学与拓扑相关课程笔记。</p>
-          </a>
-          <a class="collection-card" href="./collections/philosophy.html">
-            <span>Thinking</span>
-            <strong>哲学</strong>
-            <p>审美目的论、现代性、主体性，以及后续马克思主义笔记。</p>
-          </a>
-          <a class="collection-card" href="./collections/projects.html">
-            <span>Projects</span>
-            <strong>项目与工程</strong>
-            <p>语音 Agent、长期记忆系统与工程协作工作流。</p>
-          </a>
-        </div>
-      </section>
-
-      <section class="section learning" id="learning">
-        <div class="section-heading">
-          <p class="eyebrow">Knowledge map</p>
-          <h2>知识库的长期栏目</h2>
-        </div>
-        <div class="topic-grid">
-          <a class="topic" href="./notes/ai-map.html">
-            <span>AI</span>
-            <strong>模型、Agent、工具系统</strong>
-          </a>
-          <a class="topic" href="./notes/agent-memory.html">
-            <span>Memory</span>
-            <strong>长期记忆与个性化协作</strong>
-          </a>
-          <a class="topic" href="./notes/c-language-map.html">
-            <span>C</span>
-            <strong>底层语言与系统基础</strong>
-          </a>
-          <a class="topic" href="./notes/philosophy-map.html">
-            <span>Philosophy</span>
-            <strong>审美目的论与现代性</strong>
-          </a>
         </div>
       </section>
 
@@ -230,7 +195,5 @@
       <span>Cedric Notes</span>
       <a href="https://github.com/RRRealCedric">github.com/RRRealCedric</a>
     </footer>
-
-    <script src="./script.js"></script>
   </body>
 </html>

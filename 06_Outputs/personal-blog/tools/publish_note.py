@@ -28,6 +28,11 @@ CATEGORY_LABELS = {
     "philosophy": "Philosophy",
     "learning": "Learning",
 }
+HOMEPAGE_LIST_IDS = {
+    "project": "projectList",
+    "philosophy": "writingList",
+    "learning": "learningList",
+}
 
 
 @dataclass
@@ -442,7 +447,10 @@ def update_index(metadata: NoteMetadata) -> bool:
     if href in index:
         return False
 
-    marker = '        <div class="post-list" id="postList">\n'
+    list_id = HOMEPAGE_LIST_IDS[metadata.category]
+    marker = f'        <div class="post-list" id="{list_id}">\n'
+    if metadata.category == "learning":
+        marker = f'        <div class="post-list learning-list" id="{list_id}">\n'
     if marker not in index:
         sys.exit("Could not find the homepage post list insertion point.")
     index = index.replace(marker, marker + post_entry(metadata), 1)

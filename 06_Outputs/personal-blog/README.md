@@ -6,7 +6,6 @@
 
 - `index.html`：站点首页，包含项目、文章索引、学习栏目和关于区域。
 - `styles.css`：视觉风格，参考 Apple 官网的大留白与产品化层级、Anthropic 的克制内容结构、Dan Koe 站点的个人创作者式入口。
-- `script.js`：文章分类筛选交互。
 - `assets/knowledge-map.svg`：首页知识地图视觉资产。
 
 ## Usage
@@ -18,7 +17,7 @@
 ## Update Workflow
 
 1. 新增公开笔记后，在 `index.html` 的 Writing 区域添加一条 `post-row`。
-2. 新增长期栏目后，在 Knowledge map 区域添加对应 MOC 链接。
+2. 新增主题板块后，在对应的 Projects、Writing 或 Learning 区域添加入口。
 3. 项目有阶段性成果后，更新 Selected projects 区域。
 4. 不要链接 `_private/` 中的内容。
 
@@ -46,7 +45,7 @@ python3 06_Outputs/personal-blog/tools/publish_note.py \
 - `--label`：文章小标签。
 - `--force`：允许覆盖已经生成的同名 HTML。
 - `--no-index`：只生成文章页，不更新首页。
-- `--collection`：可选，把文章加入 `collections/` 下的分类页，例如 `mathematics`、`philosophy`。
+- `--collection`：可选，把文章加入对应大类下的二级分类页，例如 `mathematics`、`philosophy`、`projects`。
 - `--collection-section`：分类页中的板块标题，例如 `代数学`、`分析学`、`审美目的论`、`马克思主义`。
 
 脚本会拒绝发布 `_private/` 下的文件。
