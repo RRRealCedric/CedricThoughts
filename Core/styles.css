@@ -483,6 +483,19 @@ h3 {
   font-size: 21px;
 }
 
+.note-source {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.note-source a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .note-content {
   padding-top: 46px;
 }
