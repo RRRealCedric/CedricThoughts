@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 BLOG_ROOT = Path(__file__).resolve().parents[1]
-VAULT_ROOT = BLOG_ROOT.parents[1]
+VAULT_ROOT = BLOG_ROOT.parent
 NOTES_DIR = BLOG_ROOT / "notes"
 INDEX_PATH = BLOG_ROOT / "index.html"
 

@@ -12,7 +12,7 @@
 
 直接在浏览器中打开 `index.html` 即可预览。
 
-如果发布到 GitHub Pages，可以把 Pages source 设置为 `main` 分支的仓库根目录。根目录的 `index.html` 会自动跳转到本博客页面。
+如果发布到 GitHub Pages，可以把 Pages source 设置为 `main` 分支的仓库根目录。根目录的 `index.html` 会自动跳转到 `Core/` 下的博客页面。
 
 ## Update Workflow
 
@@ -29,7 +29,7 @@
 示例：
 
 ```bash
-python3 06_Outputs/personal-blog/tools/publish_note.py \
+python3 Core/tools/publish_note.py \
   "03_Areas/Philosophy/审美目的论的实践论.md" \
   --category philosophy \
   --slug aesthetic-practice-full \
@@ -53,7 +53,7 @@ python3 06_Outputs/personal-blog/tools/publish_note.py \
 示例：发布到“数学 / 代数学”：
 
 ```bash
-python3 06_Outputs/personal-blog/tools/publish_note.py \
+python3 Core/tools/publish_note.py \
   "04_Resources/Mathe/Algèbre Ch2 Sous-espaces vectoriels.md" \
   --category learning \
   --slug algebra-subspaces \
