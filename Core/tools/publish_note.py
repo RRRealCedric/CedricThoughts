@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -33,6 +34,32 @@ HOMEPAGE_LIST_IDS = {
     "philosophy": "writingList",
     "learning": "learningList",
 }
+DEFAULT_NOTE_DIRS = {
+    "project": "projects",
+    "philosophy": "writing",
+    "learning": "learning",
+}
+COLLECTION_NOTE_DIRS = {
+    "projects": "projects",
+    "philosophy": "writing/philosophy",
+    "politics": "writing/politics",
+    "art": "writing/art",
+    "research": "writing/research",
+    "mathematics": "learning/mathematics",
+    "economics": "learning/economics",
+}
+SECTION_NOTE_DIRS = {
+    ("projects", "X-Talk"): "projects/xtalk",
+    ("projects", "Git Workflow"): "projects/git-workflow",
+    ("philosophy", "审美目的论"): "writing/philosophy/aesthetic-teleology",
+    ("philosophy", "马克思主义"): "writing/philosophy/marxism",
+    ("politics", "韩国政治经济"): "writing/politics/korea",
+    ("art", "文学阅读"): "writing/art/literature",
+    ("research", "大学生优绩主义研究"): "writing/research/meritocracy",
+    ("mathematics", "代数学"): "learning/mathematics/algebra",
+    ("mathematics", "分析学"): "learning/mathematics/analysis",
+    ("economics", "税收经济学"): "learning/economics/taxation",
+}
 
 
 @dataclass
@@ -44,6 +71,7 @@ class NoteMetadata:
     slug: str
     collection: str | None
     collection_section: str | None
+    output_dir: str | None
 
 
 def parse_args() -> argparse.Namespace:
@@ -68,6 +96,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--collection-section",
         help="Section title inside the collection page, for example 代数学 or 审美目的论.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        help="Optional output directory under notes/, for example learning/mathematics/algebra.",
     )
     parser.add_argument(
         "--no-index",
@@ -307,7 +339,18 @@ def markdown_to_html(markdown: str) -> str:
 
         if not line.strip():
             flush_paragraph(paragraph, output)
-            flush_list(list_items, output, list_ordered)
+            if list_items:
+                next_index = index + 1
+                while next_index < len(lines) and not lines[next_index].strip():
+                    next_index += 1
+                next_line = lines[next_index] if next_index < len(lines) else ""
+                next_unordered = re.match(r"^\s*[-*+]\s+(.+)$", next_line)
+                next_ordered = re.match(r"^\s*\d+\.\s+(.+)$", next_line)
+                if not (
+                    (list_ordered and next_ordered)
+                    or (not list_ordered and next_unordered)
+                ):
+                    flush_list(list_items, output, list_ordered)
             index += 1
             continue
 
@@ -372,7 +415,40 @@ def markdown_to_html(markdown: str) -> str:
     return "\n".join(output)
 
 
-def render_article(metadata: NoteMetadata, body_html: str) -> str:
+def note_output_dir(metadata: NoteMetadata) -> str:
+    if metadata.output_dir:
+        output_dir = metadata.output_dir.strip().strip("/")
+        if output_dir.startswith("..") or "/../" in output_dir:
+            sys.exit("Output directory must stay inside notes/.")
+        return output_dir
+    if metadata.collection and metadata.collection_section:
+        section_dir = SECTION_NOTE_DIRS.get((metadata.collection, metadata.collection_section))
+        if section_dir:
+            return section_dir
+    if metadata.collection:
+        collection_dir = COLLECTION_NOTE_DIRS.get(metadata.collection)
+        if collection_dir:
+            return collection_dir
+    return DEFAULT_NOTE_DIRS[metadata.category]
+
+
+def note_relpath(metadata: NoteMetadata) -> Path:
+    return Path(note_output_dir(metadata)) / f"{metadata.slug}.html"
+
+
+def note_href_from_index(metadata: NoteMetadata) -> str:
+    return "./notes/" + note_relpath(metadata).as_posix()
+
+
+def note_href_from_collection(metadata: NoteMetadata) -> str:
+    return "../notes/" + note_relpath(metadata).as_posix()
+
+
+def root_prefix_from_note(note_path: Path) -> str:
+    return Path(os.path.relpath(BLOG_ROOT, note_path.parent)).as_posix()
+
+
+def render_article(metadata: NoteMetadata, body_html: str, root_prefix: str) -> str:
     title = html.escape(metadata.title)
     description = html.escape(metadata.description)
     label = html.escape(metadata.label)
@@ -383,8 +459,8 @@ def render_article(metadata: NoteMetadata, body_html: str) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{title} | Cedric Notes</title>
     <meta name="description" content="{description}">
-    <link rel="stylesheet" href="../styles.css">
-    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="{root_prefix}/styles.css">
+    <link rel="icon" href="{root_prefix}/assets/favicon.svg" type="image/svg+xml">
     <script>
       window.MathJax = {{
         tex: {{
@@ -398,7 +474,7 @@ def render_article(metadata: NoteMetadata, body_html: str) -> str:
   </head>
   <body class="note-page">
     <main class="note-main">
-      <a class="note-back" href="../index.html">← Back to Cedric Notes</a>
+      <a class="note-back" href="{root_prefix}/index.html">← Back to Cedric Notes</a>
       <header class="note-header">
         <p class="note-meta">{label}</p>
         <h1>{title}</h1>
@@ -425,7 +501,7 @@ def post_entry(metadata: NoteMetadata) -> str:
               <h3>{html.escape(metadata.title)}</h3>
               <p>{html.escape(metadata.description)}</p>
             </div>
-            <a href="./notes/{html.escape(metadata.slug)}.html">Open</a>
+            <a href="{html.escape(note_href_from_index(metadata))}">Open</a>
           </article>
 """
 
@@ -436,14 +512,14 @@ def collection_entry(metadata: NoteMetadata) -> str:
               <h3>{html.escape(metadata.title)}</h3>
               <p>{html.escape(metadata.description)}</p>
             </div>
-            <a href="../notes/{html.escape(metadata.slug)}.html">Open</a>
+            <a href="{html.escape(note_href_from_collection(metadata))}">Open</a>
           </article>
 """
 
 
 def update_index(metadata: NoteMetadata) -> bool:
     index = INDEX_PATH.read_text(encoding="utf-8")
-    href = f'./notes/{metadata.slug}.html'
+    href = note_href_from_index(metadata)
     if href in index:
         return False
 
@@ -467,7 +543,7 @@ def update_collection(metadata: NoteMetadata) -> bool:
         sys.exit(f"Collection page does not exist: {collection_path}")
 
     collection = collection_path.read_text(encoding="utf-8")
-    href = f'../notes/{metadata.slug}.html'
+    href = note_href_from_collection(metadata)
     if href in collection:
         return False
 
@@ -510,14 +586,18 @@ def main() -> None:
         slug=slug,
         collection=args.collection,
         collection_section=args.collection_section,
+        output_dir=args.output_dir,
     )
 
-    output_path = NOTES_DIR / f"{metadata.slug}.html"
+    output_path = NOTES_DIR / note_relpath(metadata)
     if output_path.exists() and not args.force:
         sys.exit(f"Output already exists: {output_path}. Use --force to overwrite it.")
 
-    NOTES_DIR.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(render_article(metadata, markdown_to_html(markdown)), encoding="utf-8")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        render_article(metadata, markdown_to_html(markdown), root_prefix_from_note(output_path)),
+        encoding="utf-8",
+    )
 
     index_updated = False
     if not args.no_index:
